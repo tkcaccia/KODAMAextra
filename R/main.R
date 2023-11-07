@@ -67,7 +67,7 @@ function (data,                       # Dataset
           f.par.knn = 5, f.par.pls = 5,
           W = NULL, 
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-          splitting = 50, spatial.resolution = 0.3, ncore = 1) 
+          splitting = 50, spatial.resolution = 0.3, n.cores = 1) 
 {
   neighbors = min(c(landmarks, nrow(data)/3)) + 1
   if (sum(is.na(data)) > 0) {
@@ -129,7 +129,19 @@ function (data,                       # Dataset
   doParallel::registerDoParallel(cl = my.cluster)
   foreach::getDoParRegistered()
   foreach::getDoParWorkers()
-  res_parallel=foreach(k=1:M) %dopar%   {
+
+
+
+doSNOW::registerDoSNOW(my.cluster)
+pb <- txtProgressBar(min = 1, max = M, style = 1)
+  
+
+res_parallel <- foreach(k = 1:M, 
+                  .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
+{
+
+  
+#  res_parallel=foreach(k=1:M) %dopar%   {
     library("KODAMA")
   
 
@@ -203,7 +215,7 @@ function (data,                       # Dataset
 
     }
     options(warn = 0)
-    res_k=NULL
+    res_k=rep(NA,nsample)
     if (is.list(yatta)) {
       clbest = as.vector(yatta$clbest)
       accu = yatta$accbest
@@ -227,12 +239,13 @@ function (data,                       # Dataset
     list(res_k=res_k)
 
   }
+  
   parallel::stopCluster(cl = my.cluster)
   
   for(k in 1:M){
     res[k,] = res_parallel[[k]]$res_k
   }
-#  close(pb)
+  close(pb)
 
   
 
@@ -290,7 +303,7 @@ function (data,                       # Dataset
   knn_Armadillo$neighbors = neighbors
   return(list(dissimilarity = dissimilarity, acc = accu, proximity = ma, 
               v = vect_acc, res = res, 
-              landpoints = landpoints, knn_Armadillo = knn_Armadillo, 
+              knn_Armadillo = knn_Armadillo, 
               data = data))
 }
 
