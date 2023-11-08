@@ -23,8 +23,8 @@ S3method(RunKODAMAmatrix,Seurat)
 S3method(RunKODAMAvisualization,Seurat)
 
 export(KODAMA.matrix.parallel)
-export(RunKODAMAmatrix.Seurat)
-export(RunKODAMAvisualization.Seurat)
+export(RunKODAMAmatrix)
+export(RunKODAMAvisualization)
 
 
 
