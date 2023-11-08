@@ -6,7 +6,8 @@
 #import("stats","Rcpp")
 #exportPattern("^[[:alpha:]]+")
 
-
+S3method(RunKODAMAmatrix,Seurat)
+S3method(RunKODAvisualization,Seurat)
 
 importFrom(Rcpp, evalCpp)
 importFrom("graphics", "plot", "points")
