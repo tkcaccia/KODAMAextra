@@ -1,4 +1,4 @@
-RunKODAMAmatrix.Seurat <- function(object,reduction="pca",dims=50, ...) {
+RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
@@ -25,7 +25,7 @@ RunKODAMAmatrix.Seurat <- function(object,reduction="pca",dims=50, ...) {
 }
 
 
-RunKODAMAvisualization.Seurat <- function(object, ...) {
+RunKODAMAvisualization.Seurat = function(object, ...) {
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
