@@ -1,3 +1,45 @@
+RunKODAMAmatrix.Seurat <- function(object,reduction="pca",dims=50, ...) {
+  if (!is(object, "Seurat")) {
+    stop("object is not a Seurat object")
+  }
+  if(reduction=="pca"){
+    data=Seurat::Embeddings(object, reduction = "pca")
+    nc=ncol(data)
+    if(nc<dims){
+      dims=nc
+      message("dims is set higher than the number of principal components")
+    }
+    data=data[,1:nc]
+  }
+    #expression_data= Seurat::GetAssayData(brain, assay = assay)
+  spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
+  kk=KODAMA.matrix(data = data, spatial = spat_coord, ...)
+  KODAMA=CreateDimReducObject(
+    embeddings = data[,1:2],
+    key = "Dimensions_",
+    assay = "RNA",
+    misc=kk
+  )
+  object@reductions$KODAMA=KODAMA
+  return(object)
+}
+
+
+RunKODAvisualization.Seurat <- function(object, ...) {
+  if (!is(object, "Seurat")) {
+    stop("object is not a Seurat object")
+  }
+  vis=KODAMA.visualization(object@reductions$KODAMA@misc)
+  KODAMA=CreateDimReducObject(
+    embeddings = vis,
+    key = "Dimensions_",
+    assay = "RNA",
+    misc=object@reductions$KODAMA@misc
+  )
+  object@reductions$KODAMA=KODAMA
+  return(object)
+}
+
 
 new_trajectory = function(x,y,n=20,data=NULL,knn=10,FUN=mean){
   ii=identify(x,y,order = TRUE)
