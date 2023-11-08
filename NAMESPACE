@@ -6,8 +6,6 @@
 #import("stats","Rcpp")
 #exportPattern("^[[:alpha:]]+")
 
-S3method(RunKODAMAmatrix,Seurat)
-S3method(RunKODAvisualization,Seurat)
 
 importFrom(Rcpp, evalCpp)
 importFrom("graphics", "plot", "points")
@@ -21,6 +19,8 @@ importFrom("doParallel", "registerDoParallel")
 importFrom("foreach", "getDoParRegistered", "getDoParWorkers")
 
   
+S3method(RunKODAMAmatrix,Seurat)
+S3method(RunKODAMAvisualization,Seurat)
 
-exportPattern(KODAMA.matrix.parallel)
+exportPattern(KODAMA.matrix.parallel,RunKODAMAmatrix,RunKODAMAvisualization)
 
