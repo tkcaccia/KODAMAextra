@@ -22,5 +22,9 @@ importFrom("foreach", "getDoParRegistered", "getDoParWorkers")
 S3method(RunKODAMAmatrix,Seurat)
 S3method(RunKODAMAvisualization,Seurat)
 
-exportPattern(KODAMA.matrix.parallel,RunKODAMAmatrix,RunKODAMAvisualization)
+export(KODAMA.matrix.parallel)
+export(RunKODAMAmatrix)
+export(RunKODAMAvisualization)
+
+
 
