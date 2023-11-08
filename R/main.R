@@ -7,6 +7,11 @@ RunKODAMAvisualization <- function(...) {
 }
 
 
+refine_cluster <- function(...) {
+    UseMethod("refine_cluster")
+}
+
+
 
 RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
   if (!is(object, "Seurat")) {
@@ -49,6 +54,17 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
   object@reductions$KODAMA=KODAMA
   return(object)
 }
+
+
+refine_cluster.Seurat = (object){
+  if (!is(object, "Seurat")) {
+    stop("object is not a Seurat object")
+  }
+  t=refine_cluster(object@active.ident, as.matrix(Seurat::GetTissueCoordinates(object)), shape = "square") 
+  object@active.ident=as.factor(t)
+  return(object)
+}
+    
 
 
 new_trajectory = function(x,y,n=20,data=NULL,knn=10,FUN=mean){
