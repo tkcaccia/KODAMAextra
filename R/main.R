@@ -56,7 +56,7 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
 }
 
 
-refine_cluster.Seurat = (object){
+refine_cluster.Seurat = function (object){
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
