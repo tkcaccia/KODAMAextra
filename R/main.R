@@ -7,8 +7,8 @@ RunKODAMAvisualization <- function(...) {
 }
 
 
-refine_cluster <- function(...) {
-    UseMethod("refine_cluster")
+refinecluster <- function(...) {
+    UseMethod("refinecluster")
 }
 
 
@@ -56,7 +56,7 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
 }
 
 
-refine_cluster.Seurat = function (object){
+refinecluster.Seurat = function (object){
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
