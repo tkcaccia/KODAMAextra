@@ -21,12 +21,12 @@ importFrom("foreach", "getDoParRegistered", "getDoParWorkers")
   
 S3method(RunKODAMAmatrix,Seurat)
 S3method(RunKODAMAvisualization,Seurat)
-S3method(refine_cluster,Seurat)
+S3method(refinecluster,Seurat)
 
 export(KODAMA.matrix.parallel)
 export(RunKODAMAmatrix)
 export(RunKODAMAvisualization)
-export(refine_cluster)
+export(refinecluster)
 
 
 
