@@ -27,7 +27,10 @@ RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
     data=data[,1:nc]
   }
     #expression_data= Seurat::GetAssayData(brain, assay = assay)
-  spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
+  spat_coord = NULL
+  if(names(object@assays)=="Spatial")
+      spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
+      
   kk=KODAMA.matrix(data = data, spatial = spat_coord, ...)
   KODAMA=CreateDimReducObject(
     embeddings = data[,1:2],
