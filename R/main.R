@@ -31,7 +31,7 @@ RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
   if(names(object@assays)=="Spatial")
       spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
       
-  kk=KODAMA.matrix(data = data, spatial = spat_coord, ...)
+  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
   KODAMA=CreateDimReducObject(
     embeddings = data[,1:2],
     key = "Dimensions_",
