@@ -146,7 +146,10 @@ refinecluster.giotto = function (object,name, shape = "square"){
    rownames(spat_coord)=xy_names
    cluster=object@cell_metadata$cell$rna@metaDT[,..name][[name]]
   t=refine_cluster(cluster, spat_coord, shape = shape) 
-  object@cell_metadata$cell$rna@metaDT[,..name][[name]]=as.numeric(t)
+  t=data.frame(t)
+  colnames(t)="refined"
+  object = addCellMetadata(gobject = object,new_metadata = t)
+
   return(object)
 }
     
