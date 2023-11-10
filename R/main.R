@@ -11,7 +11,7 @@ refinecluster <- function(...) {
     UseMethod("refinecluster")
 }
 
-RunKODAMAmatrix.Giotto = function(object,reduction="pca",dims=50, ...) {
+RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
   if (!is(object, "giotto")) {
     stop("object is not a giotto object")
   }
