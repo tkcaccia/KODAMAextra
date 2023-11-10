@@ -15,7 +15,41 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
   if (!is(object, "giotto")) {
     stop("object is not a giotto object")
   }
-  print("Ciao Dupe")
+  if(reduction=="pca"){
+    data=Giotto::getDimReduction(object,reduction = c("cells", "feats"),reduction_method = "pca",name = "pca",output =  "matrix",set_defaults = TRUE)
+    nc=ncol(data)
+    if(nc<dims){
+      dims=nc
+      message("dims is set higher than the number of principal components")
+    }
+    data=data[,1:nc]
+  }
+    #expression_data= Seurat::GetAssayData(brain, assay = assay)
+  spat_coord = NULL
+
+   # Giotto pipeline deals only with spatial omics data
+   spat_coord=getSpatialLocations(visium_brain,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
+   xy_names=spat_coord$cell_ID 
+   spat_coord=as.matrix(spat_coord[,-3])
+   rownames(spat_coord)=xy_names
+   
+      
+  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
+
+dimObject=createDimObj(
+  coordinates=matrix(0),
+  name = "KODAMA",
+  spat_unit = "cell",
+  feat_type = "rna",
+  method = "KODAMA",
+  reduction = "cells",
+  provenance = NULL,
+  misc = kk,
+  my_rownames = NULL)
+
+  object = set_dimReduction(gobject = object, dimObject = dimObject)
+
+  return(object)
 }
 
 RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
@@ -52,7 +86,7 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
-  vis=KODAMA.visualization(object@reductions$KODAMA@misc)
+  vis=KODAMA.visualization(object@reductions$KODAMA@misc, ...)
   KODAMA=CreateDimReducObject(
     embeddings = vis,
     key = "Dimensions_",
@@ -64,11 +98,54 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
 }
 
 
+RunKODAMAvisualization.giotto = function(object, ...) {
+  if (!is(object, "giotto")) {
+    stop("object is not a giotto object")
+  }
+    
+  vis=KODAMA.visualization(gobject@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc, ...)
+
+dimObject=createDimObj(
+  coordinates=vis,
+  name = "KODAMA",
+  spat_unit = "cell",
+  feat_type = "rna",
+  method = "KODAMA",
+  reduction = "cells",
+  provenance = NULL,
+  misc = gobject@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc,
+  my_rownames = NULL)
+
+  object = set_dimReduction(gobject = object, dimObject = dimObject)
+
+
+
+    
+  return(object)
+}
+
+
+
 refinecluster.Seurat = function (object){
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
   t=refine_cluster(object@active.ident, as.matrix(Seurat::GetTissueCoordinates(object)), shape = "square") 
+  object@active.ident=as.factor(t)
+  return(object)
+}
+
+
+refinecluster.giotto = function (object){
+  if (!is(object, "giotto")) {
+    stop("object is not a Seurat object")
+  }
+  spat_coord=getSpatialLocations(visium_brain,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
+   xy_names=spat_coord$cell_ID 
+   spat_coord=as.matrix(spat_coord[,-3])
+   rownames(spat_coord)=xy_names
+    
+  t=refine_cluster(object@active.ident, spat_coord, shape = "square") 
   object@active.ident=as.factor(t)
   return(object)
 }
