@@ -144,9 +144,9 @@ refinecluster.giotto = function (object,name, shape = "square"){
    xy_names=spat_coord$cell_ID 
    spat_coord=as.matrix(spat_coord[,-3])
    rownames(spat_coord)=xy_names
-    cluster=object@cell_metadata$cell$rna@metaDT[,name]
+   cluster=object@cell_metadata$cell$rna@metaDT[,..name][[name]]
   t=refine_cluster(cluster, spat_coord, shape = shape) 
-  object@cell_metadata$cell$rna@metaDT[,name]=as.numeric(t)
+  object@cell_metadata$cell$rna@metaDT[,..name][[name]]=as.numeric(t)
   return(object)
 }
     
