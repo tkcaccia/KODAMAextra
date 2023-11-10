@@ -28,7 +28,7 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
   spat_coord = NULL
 
    # Giotto pipeline deals only with spatial omics data
-   spat_coord=getSpatialLocations(visium_brain,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
+   spat_coord=getSpatialLocations(object,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
    xy_names=spat_coord$cell_ID 
    spat_coord=as.matrix(spat_coord[,-3])
    rownames(spat_coord)=xy_names
@@ -103,7 +103,7 @@ RunKODAMAvisualization.giotto = function(object, ...) {
     stop("object is not a giotto object")
   }
     
-  vis=KODAMA.visualization(gobject@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc, ...)
+  vis=KODAMA.visualization(object@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc, ...)
 
 dimObject=createDimObj(
   coordinates=vis,
@@ -113,10 +113,10 @@ dimObject=createDimObj(
   method = "KODAMA",
   reduction = "cells",
   provenance = NULL,
-  misc = gobject@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc,
+  misc = object@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc,
   my_rownames = NULL)
 
-  object = set_dimReduction(gobject = object, dimObject = dimObject)
+  object = set_dimReduction(gobject = object, dimObject = dimObject,verbose = FALSE)
 
 
 
@@ -126,27 +126,27 @@ dimObject=createDimObj(
 
 
 
-refinecluster.Seurat = function (object){
+refinecluster.Seurat = function (object, shape = "square"){
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
-  t=refine_cluster(object@active.ident, as.matrix(Seurat::GetTissueCoordinates(object)), shape = "square") 
+  t=refine_cluster(object@active.ident, as.matrix(Seurat::GetTissueCoordinates(object)), shape = shape) 
   object@active.ident=as.factor(t)
   return(object)
 }
 
 
-refinecluster.giotto = function (object){
+refinecluster.giotto = function (object,name, shape = "square"){
   if (!is(object, "giotto")) {
     stop("object is not a Seurat object")
   }
-  spat_coord=getSpatialLocations(visium_brain,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
+  spat_coord=getSpatialLocations(object,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
    xy_names=spat_coord$cell_ID 
    spat_coord=as.matrix(spat_coord[,-3])
    rownames(spat_coord)=xy_names
-    
-  t=refine_cluster(object@active.ident, spat_coord, shape = "square") 
-  object@active.ident=as.factor(t)
+    cluster=object@cell_metadata$cell$rna@metaDT[,name]
+  t=refine_cluster(cluster, spat_coord, shape = shape) 
+  object@cell_metadata$cell$rna@metaDT[,name]=as.numeric(t)
   return(object)
 }
     
