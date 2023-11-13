@@ -19,10 +19,16 @@ importFrom("doParallel", "registerDoParallel")
 importFrom("foreach", "getDoParRegistered", "getDoParWorkers")
 
   
+S3method(RunKODAMAmatrix,SingleCellExperiment)
+S3method(RunKODAMAmatrix,SpatialExperiment)
 S3method(RunKODAMAmatrix,Seurat)
 S3method(RunKODAMAmatrix,giotto)
+S3method(RunKODAMAvisualization,SingleCellExperiment)
+S3method(RunKODAMAvisualization,SpatialExperiment)
 S3method(RunKODAMAvisualization,Seurat)
 S3method(RunKODAMAvisualization,giotto)
+
+S3method(refinecluster,SpatialExperiment)
 S3method(refinecluster,Seurat)
 S3method(refinecluster,giotto)
 
