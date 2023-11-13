@@ -11,6 +11,59 @@ refinecluster <- function(...) {
     UseMethod("refinecluster")
 }
 
+RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=50, ...) {
+  if (!is(object, "SingleCellExperiment")) {
+    stop("object is not a SingleCellExperiment object")
+  }
+  if(reduction =="pca"){
+    data <- SingleCellExperiment::reducedDim(object, "PCA")
+    nc <- ncol(data)
+    if(nc < dims){
+      dims = nc
+      message("dims is set higher than the number of principal components")
+    }
+    data= data[ , 1:nc]
+  }
+  kk <- KODAMA.matrix.parallel(data = data, ...)
+  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
+  return(object)
+}
+
+RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, ...) {
+  if (!is(object, "SpatialExperiment")) {
+    stop("object is not a spatialExperiment object")
+  }
+  if(reduction =="pca"){
+    data <- SingleCellExperiment::reducedDim(object, "PCA")
+    nc <- ncol(data)
+    if(nc < dims){
+      dims = nc
+      message("dims is set higher than the number of principal components")
+    }
+    
+    data= data[ , 1:nc]
+  }
+  #spat_coord = NULL
+  # In this dataset, the names of the assays are "counts" and "logcounts"
+  #if("Spatial"  %in%  names(object@assays)){
+    spat_coord<- as.matrix(SpatialExperiment::spatialCoords(object))
+   # }
+
+  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
+  #I have this error when I run the following line
+  
+  #SingleCellExperiment::reducedDim(object, "KODAMA") <- kk
+  #Error in .set_internal_character(x, type, value, getfun = int_colData,  : 
+  #invalid 'value' in 'reducedDim(<SpatialExperiment>, type="character") <- value':
+  # 'value' should have number of rows equal to 'ncol(x)'
+  
+  #So I assigned KODAMA object manually
+  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
+  return(object)
+}
+
+
+
 RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
   if (!is(object, "giotto")) {
     stop("object is not a giotto object")
@@ -81,6 +134,25 @@ RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
   return(object)
 }
 
+RunKODAMAvisualization.SingleCellExperiment <- function(object, ...) {
+  if (!is(object, "SingleCellExperiment")) {
+    stop("object is not a SingleCellExperiment object")
+  }
+  reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
+  vis <- KODAMA.visualization(reducedDims_KODAMA, ...)
+  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- vis
+  return(object)
+}
+
+RunKODAMAvisualization.SpatialExperiment = function(object, ...) {
+  if (!is(spe, "SpatialExperiment")) {
+    stop("object is not a SpatialExperiment object")
+  }
+  reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
+  vis <- KODAMA.visualization(reducedDims_KODAMA, ...)
+  SingleCellExperiment::reducedDim(object, "KODAMA") <- vis
+  return(object)
+}
 
 RunKODAMAvisualization.Seurat = function(object, ...) {
   if (!is(object, "Seurat")) {
@@ -124,6 +196,19 @@ dimObject=createDimObj(
   return(object)
 }
 
+
+refinecluster.SpatialExperiment = function (object, shape = "square", assay = "Spatial"){
+  if (!is(object, "SpatialExperiment")) {
+    stop("object is not a SpatialExperiment object")
+  }
+  #   clusterlabels <- SingleCellExperiment::clusterCells(object, use.dimred="KODAMA", assay.type="logcounts")
+  # should we add assay.type to be spatial?
+  clusterlabels <- scran::clusterCells(object, use.dimred="KODAMA")
+  location <- as.matrix(SpatialExperiment::spatialCoords(object))
+  t <- refine_cluster(clusterlabels, location, shape = shape) 
+  colLabels(object) <- t
+  return(object)
+}
 
 
 refinecluster.Seurat = function (object, shape = "square"){
