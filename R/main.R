@@ -11,6 +11,12 @@ refinecluster <- function(...) {
     UseMethod("refinecluster")
 }
 
+
+RunKODAMAmatrix.default = function(data, ...) {
+  kk=KODAMA.matrix.parallel(data = data, ...)
+  return(kk)
+}
+
 RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=50, ...) {
   if (!is(object, "SingleCellExperiment")) {
     stop("object is not a SingleCellExperiment object")
@@ -134,6 +140,12 @@ RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
   return(object)
 }
 
+RunKODAMAvisualization.default = function(kk, ...) {
+
+  vis <- KODAMA.visualization(kk, ...)
+  return(vis)
+}
+
 RunKODAMAvisualization.SingleCellExperiment <- function(object, ...) {
   if (!is(object, "SingleCellExperiment")) {
     stop("object is not a SingleCellExperiment object")
@@ -196,6 +208,11 @@ dimObject=createDimObj(
   return(object)
 }
 
+
+refinecluster.default = function (clusterlabels, location, shape = shape){
+  t <- refine_cluster(clusterlabels, location, shape = shape) 
+  return(t)
+}
 
 refinecluster.SpatialExperiment = function (object, shape = "square", assay = "Spatial"){
   if (!is(object, "SpatialExperiment")) {
