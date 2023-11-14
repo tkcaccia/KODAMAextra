@@ -63,6 +63,11 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
   #invalid 'value' in 'reducedDim(<SpatialExperiment>, type="character") <- value':
   # 'value' should have number of rows equal to 'ncol(x)'
   
+  # X FARAG: a class is organize with specific variables. You cannot simply assign a list to the class reducedDim.
+    
+ 
+    
+  
   #So I assigned KODAMA object manually
   object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
   return(object)
@@ -111,7 +116,7 @@ dimObject=createDimObj(
   return(object)
 }
 
-RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
+RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50,assay="counts",  ...) {
   if (!is(object, "Seurat")) {
     stop("object is not a Seurat object")
   }
@@ -124,7 +129,10 @@ RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50, ...) {
     }
     data=data[,1:nc]
   }
-    #expression_data= Seurat::GetAssayData(brain, assay = assay)
+  if(is.null(reduction)){
+      data= Seurat::GetAssayData(object, assay = assay)
+  }  
+    
   spat_coord = NULL
   if(names(object@assays)=="Spatial")
       spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
