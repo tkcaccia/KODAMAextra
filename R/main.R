@@ -39,7 +39,7 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
   if (!is(object, "SpatialExperiment")) {
     stop("object is not a spatialExperiment object")
   }
-  if(reduction =="pca"){
+  if(reduction =="PCA"){
     data <- SingleCellExperiment::reducedDim(object, "PCA")
     nc <- ncol(data)
     if(nc < dims){
