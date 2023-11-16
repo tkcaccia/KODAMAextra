@@ -21,7 +21,7 @@ RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=5
   if (!is(object, "SingleCellExperiment")) {
     stop("object is not a SingleCellExperiment object")
   }
-  if(reduction =="pca"){
+  if(reduction =="PCA"){
     data <- SingleCellExperiment::reducedDim(object, "PCA")
     nc <- ncol(data)
     if(nc < dims){
