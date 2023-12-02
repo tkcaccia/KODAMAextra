@@ -501,7 +501,7 @@ res_parallel <- foreach(k = 1:M,
 
   }
   
-  parallel::stopCluster(cl = my.cluster)
+#  parallel::stopCluster(cl = my.cluster)
   
   for(k in 1:M){
     res[k,] = res_parallel[[k]]$res_k
@@ -567,39 +567,43 @@ res_parallel <- foreach(k = 1:M,
 
 print("Calculation of dissimilarity matrix...")
 
-# pb <- txtProgressBar(min = 1, max = n.cores, style = 1)
+ pb <- txtProgressBar(min = 1, max = n.cores, style = 1)
   
 
-# res_parallel <- foreach(k = 1:n.cores, 
-#                  .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
-#{
+ res_parallel <- foreach(k = 1:n.cores, 
+                  .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
+{
 
-#    library("KODAMA")
-
-    
+  library("KODAMA")
+knn_nn_index=knn_Armadillo$nn_index[ll[[k]],]
+knn_distances=knn_Armadillo$distances[ll[[k]],]
                                        
-  for (i_tsne in 1:nrow(data)) {
-  #for (i_tsne in ll[[k]]) {
+#  for (i_tsne in 1:nrow(data)) {
+  for (i_tsne in 1:length(ll[[k]])) {
     for (j_tsne in 1:neighbors) {
-      kod_tsne = mean(res[, i_tsne] == res[, knn_Armadillo$nn_index[i_tsne, j_tsne]], na.rm = TRUE)
-      knn_Armadillo$distances[i_tsne, j_tsne] = knn_Armadillo$distances[i_tsne,  j_tsne]/kod_tsne
+      kod_tsne = mean(res[, i_tsne] == res[, knn_nn_index[i_tsne, j_tsne]], na.rm = TRUE)
+      knn_distances[i_tsne, j_tsne] = knn_distances[i_tsne,  j_tsne]/kod_tsne
+        
     }
-    oo_tsne = order(knn_Armadillo$distance[i_tsne, ])
-    knn_Armadillo$distances[i_tsne, ] = knn_Armadillo$distances[i_tsne, oo_tsne]
-    knn_Armadillo$nn_index[i_tsne, ] = knn_Armadillo$nn_index[i_tsne, oo_tsne]
+    oo_tsne = order(knn_distances[i_tsne, ])
+    knn_distances[i_tsne, ] = knn_distances[i_tsne, oo_tsne]
+    knn_nn_index[i_tsne, ] = knn_nn_index[i_tsne, oo_tsne]
   }
 
 
-  #  list(res_k=res_k)
+   list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
 
-#  }
+  }
   
- # parallel::stopCluster(cl = my.cluster)
+  parallel::stopCluster(cl = my.cluster)
   
- # for(k in 1:M){
- #   res[k,] = res_parallel[[k]]$res_k
- # }
- # close(pb)
+  for(k in 1:n.cores){
+      
+    knn_Armadillo$nn_index[ll[[k]],]=res_parallel[[k]]$knn_nn_index
+    knn_Armadillo$distances[ll[[k]],] =res_parallel[[k]]$knn_distances
+
+  }
+  close(pb)
 
 
                                        
