@@ -383,9 +383,7 @@ function (data,                       # Dataset
   vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
   accu = NULL
 
-#  pb <- txtProgressBar(min = 1, max = M, style = 1)
-#  for (k in 1:M) {
-#    setTxtProgressBar(pb, k)
+    
 
   my.cluster <- parallel::makeCluster(
     n.cores, 
@@ -406,8 +404,6 @@ res_parallel <- foreach(k = 1:M,
                   .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
 {
 
-  
-#  res_parallel=foreach(k=1:M) %dopar%   {
     library("KODAMA")
   
 
@@ -499,8 +495,7 @@ res_parallel <- foreach(k = 1:M,
 
       
     }
- # }
-#  close(pb)
+
 
     list(res_k=res_k)
 
@@ -516,47 +511,75 @@ res_parallel <- foreach(k = 1:M,
   
 
     
-  dissimilarity=NULL
-  ma=NULL
-  if(simm_dissimilarity_matrix){
-    ma = matrix(0, ncol = nsample, nrow = nsample)
-    for(k in 1:M){
-      uni = unique(res[k,])
-      nun = length(uni)
-      res_k=res[k,]
-      for (ii in 1:nun) 
-        ma[res[k,] == uni[ii], res_k ==  uni[ii]] = ma[res_k == uni[ii], res_k == uni[ii]] + 1
-    }
-    ma = ma/M
-    Edist = as.matrix(dist(data))
-    ma[ma < epsilon] = 0
-
-#  Entropy calculation
-#    y = ma
-#    diag(y) = NA
-#    yy = as.numeric(y)
-#    yy = yy[!is.na(yy)]
-#    yy = yy/sum(yy)
-#    H = -sum(ifelse(yy > 0, yy * log(yy), 0))
-    
-    mam = (1/ma) * Edist
-    mam[is.na(mam)] <- .Machine$double.xmax
-    mam[is.infinite(mam) & mam > 0] <- .Machine$double.xmax
-    mam = floyd(mam)
-    mam[mam == .Machine$double.xmax] <- NA
-    prox = Edist/mam
-    diag(prox) = 1
-    prox[is.na(prox)] = 0
-    maxvalue = max(mam, na.rm = TRUE)
-    mam[is.na(mam)] = maxvalue
-
-    dissimilarity = mam
-  }
+#  dissimilarity=NULL
+#  ma=NULL
+#  if(simm_dissimilarity_matrix){
+#    ma = matrix(0, ncol = nsample, nrow = nsample)
+#    for(k in 1:M){
+#      uni = unique(res[k,])
+#      nun = length(uni)
+#      res_k=res[k,]
+#      for (ii in 1:nun) 
+#        ma[res[k,] == uni[ii], res_k ==  uni[ii]] = ma[res_k == uni[ii], res_k == uni[ii]] + 1
+#    }
+#    ma = ma/M
+#    Edist = as.matrix(dist(data))
+#    ma[ma < epsilon] = 0
+#
+#  #  Entropy calculation
+#  #    y = ma
+#  #    diag(y) = NA
+#  #    yy = as.numeric(y)
+#  #    yy = yy[!is.na(yy)]
+#  #    yy = yy/sum(yy)
+#  #    H = -sum(ifelse(yy > 0, yy * log(yy), 0))
+#    
+#    mam = (1/ma) * Edist
+#    mam[is.na(mam)] <- .Machine$double.xmax
+#    mam[is.infinite(mam) & mam > 0] <- .Machine$double.xmax
+#    mam = floyd(mam)
+#    mam[mam == .Machine$double.xmax] <- NA#
+#    prox = Edist/mam
+#    diag(prox) = 1
+#    prox[is.na(prox)] = 0
+#    maxvalue = max(mam, na.rm = TRUE)
+#    mam[is.na(mam)] = maxvalue
+#
+#    dissimilarity = mam
+#  }
 
   knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
   knn_Armadillo$distances = knn_Armadillo$distances[, -1]
   knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
+
+
+# KFOLD
+  f=floor(nsample/n.cores)
+  f.1=f+1
+  mod=nsample%%n.cores
+  ll=list()
+  for(i in 1:mod){
+    ll[[i]]=(1:f.1)+(i-1)*f.1
+  }
+  for(i in (mod+1):11){
+    ll[[i]]=(1:f)+(i-1)*f+mod
+  }
+
+print("Calculation of dissimilarity matrix...")
+
+# pb <- txtProgressBar(min = 1, max = n.cores, style = 1)
+  
+
+# res_parallel <- foreach(k = 1:n.cores, 
+#                  .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
+#{
+
+#    library("KODAMA")
+
+    
+                                       
   for (i_tsne in 1:nrow(data)) {
+  #for (i_tsne in ll[[k]]) {
     for (j_tsne in 1:neighbors) {
       kod_tsne = mean(res[, i_tsne] == res[, knn_Armadillo$nn_index[i_tsne, j_tsne]], na.rm = TRUE)
       knn_Armadillo$distances[i_tsne, j_tsne] = knn_Armadillo$distances[i_tsne,  j_tsne]/kod_tsne
@@ -566,11 +589,32 @@ res_parallel <- foreach(k = 1:M,
     knn_Armadillo$nn_index[i_tsne, ] = knn_Armadillo$nn_index[i_tsne, oo_tsne]
   }
 
+
+  #  list(res_k=res_k)
+
+#  }
+  
+ # parallel::stopCluster(cl = my.cluster)
+  
+ # for(k in 1:M){
+ #   res[k,] = res_parallel[[k]]$res_k
+ # }
+ # close(pb)
+
+
+                                       
+
+    
   knn_Armadillo$neighbors = neighbors
-  return(list(dissimilarity = dissimilarity, acc = accu, proximity = ma, 
+  return(list(acc = accu, 
               v = vect_acc, res = res, 
               knn_Armadillo = knn_Armadillo, 
               data = data))
+
+#  return(list(dissimilarity = dissimilarity, acc = accu, proximity = ma, 
+#              v = vect_acc, res = res, 
+#              knn_Armadillo = knn_Armadillo, 
+#              data = data))
 }
 
 
