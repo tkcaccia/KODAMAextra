@@ -563,7 +563,7 @@ if(mod!=0){
      ll[[i]]=(1:f.1)+(i-1)*f.1
    }
  }
- for(i in (mod+1):11){
+ for(i in (mod+1):n.cores){
    ll[[i]]=(1:f)+(i-1)*f+mod
  }
 
