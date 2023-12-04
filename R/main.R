@@ -264,6 +264,30 @@ refinecluster.giotto = function (object,name, shape = "square"){
 }
     
 
+ refine_SVM = function(xy,labels,samples,cost =  c(0.001,0.01,0.1,1,10,100), gamma=10^(-2:0), ...){
+   samples=as.factor(samples)
+   labels=as.factor(labels)
+   sa=levels(samples)
+   refine=rep(NA,length(labels))
+   for(s in sa){
+     print(s)
+     sel=samples==s
+     xr = xy[sel,]
+     yr <- as.factor(as.vector(labels[sel]))
+     tuned <- tune.svm(x=xr, y=yr, 
+                       cost =  cost,
+                       gamma = gamma)
+     
+     model <-svm(x=xr, y=yr,
+                 cost = tuned$best.parameters$cost, 
+                 gamma = tuned$best.parameters$gamma,
+     )
+     refine[sel] <- as.vector(fitted(model))
+   }
+   refine=factor(refine,levels=levels(labels))
+   refine
+ }
+ 
 
 new_trajectory = function(x,y,n=20,data=NULL,knn=10,FUN=mean){
   ii=identify(x,y,order = TRUE)
