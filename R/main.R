@@ -554,16 +554,18 @@ res_parallel <- foreach(k = 1:M,
 
 
 # KFOLD
-  f=floor(nsample/n.cores)
-  f.1=f+1
-  mod=nsample%%n.cores
-  ll=list()
-  for(i in 1:mod){
-    ll[[i]]=(1:f.1)+(i-1)*f.1
-  }
-  for(i in (mod+1):11){
-    ll[[i]]=(1:f)+(i-1)*f+mod
-  }
+f=floor(nsample/n.cores)
+f.1=f+1
+mod=nsample%%n.cores
+ll=list()
+if(mod!=0){
+   for(i in 1:mod){
+     ll[[i]]=(1:f.1)+(i-1)*f.1
+   }
+ }
+ for(i in (mod+1):11){
+   ll[[i]]=(1:f)+(i-1)*f+mod
+ }
 
 print("Calculation of dissimilarity matrix...")
 
