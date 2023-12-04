@@ -583,7 +583,8 @@ knn_distances=knn_Armadillo$distances[ll[[k]],]
 #  for (i_tsne in 1:nrow(data)) {
   for (i_tsne in 1:length(ll[[k]])) {
     for (j_tsne in 1:neighbors) {
-      kod_tsne = mean(res[, i_tsne] == res[, knn_nn_index[i_tsne, j_tsne]], na.rm = TRUE)
+      h_tsne=ll[[k]][i_tsne]
+      kod_tsne = mean(res[, h_tsne] == res[, knn_nn_index[i_tsne, j_tsne]], na.rm = TRUE)
       knn_distances[i_tsne, j_tsne] = knn_distances[i_tsne,  j_tsne]/kod_tsne
         
     }
