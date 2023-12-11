@@ -264,7 +264,7 @@ refinecluster.giotto = function (object,name, shape = "square"){
 }
     
 
- refine_SVM = function(xy,labels,samples,cost =  c(0.001,0.01,0.1,1,10,100), gamma=10^(-2:0), ...){
+ refine_SVM = function(xy,labels,samples, ...){
    samples=as.factor(samples)
    labels=as.factor(labels)
    sa=levels(samples)
@@ -274,14 +274,8 @@ refinecluster.giotto = function (object,name, shape = "square"){
      sel=samples==s
      xr = xy[sel,]
      yr <- as.factor(as.vector(labels[sel]))
-     tuned <- tune.svm(x=xr, y=yr, 
-                       cost =  cost,
-                       gamma = gamma)
      
-     model <-svm(x=xr, y=yr,
-                 cost = tuned$best.parameters$cost, 
-                 gamma = tuned$best.parameters$gamma,
-     )
+     model <-svm(x=xr, y=yr,...)
      refine[sel] <- as.vector(fitted(model))
    }
    refine=factor(refine,levels=levels(labels))
