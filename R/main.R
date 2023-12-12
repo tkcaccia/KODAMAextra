@@ -134,7 +134,7 @@ RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50,assay="counts",
   }  
     
   spat_coord = NULL
-  if(names(object@assays)=="Spatial")
+  if(any(names(object@assays)=="Spatial"))
       spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
       
   kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
