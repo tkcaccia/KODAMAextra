@@ -424,7 +424,7 @@ res_parallel <- foreach(k = 1:M,
 
     library("KODAMA")
   
-
+set.seed(k)
     
 
   
