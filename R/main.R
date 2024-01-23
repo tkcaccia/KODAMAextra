@@ -571,45 +571,45 @@ res_parallel <- foreach(k = 1:M,
   knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
 
 
-# KFOLD
-f=floor(nsample/n.cores)
-f.1=f+1
-mod=nsample%%n.cores
-ll=list()
-if(mod!=0){
-   for(i in 1:mod){
-     ll[[i]]=(1:f.1)+(i-1)*f.1
-   }
- }
- for(i in (mod+1):n.cores){
-   ll[[i]]=(1:f)+(i-1)*f+mod
- }
+### KFOLD
+##f=floor(nsample/n.cores)
+##f.1=f+1
+##mod=nsample%%n.cores
+##ll=list()
+##if(mod!=0){
+##   for(i in 1:mod){
+##     ll[[i]]=(1:f.1)+(i-1)*f.1
+##   }
+## }
+## for(i in (mod+1):n.cores){
+##   ll[[i]]=(1:f)+(i-1)*f+mod
+## }
 
 print("Calculation of dissimilarity matrix...")
 
- pb <- txtProgressBar(min = 1, max = n.cores, style = 1)
+ pb <- txtProgressBar(min = 1, max = nrow(data), style = 1)
   
 
- res_parallel <- foreach(k = 1:n.cores, 
+ res_parallel <- foreach(k = 1:nrow(data), 
                   .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
 {
 
   library("KODAMA")
-knn_nn_index=knn_Armadillo$nn_index[ll[[k]],]
-knn_distances=knn_Armadillo$distances[ll[[k]],]
+  knn_nn_index=knn_Armadillo$nn_index[k,]
+  knn_distances=knn_Armadillo$distances[k,]
                                        
-#  for (i_tsne in 1:nrow(data)) {
-  for (i_tsne in 1:length(ll[[k]])) {
-    for (j_tsne in 1:neighbors) {
-      h_tsne=ll[[k]][i_tsne]
-      kod_tsne = mean(res[, h_tsne] == res[, knn_nn_index[i_tsne, j_tsne]], na.rm = TRUE)
-      knn_distances[i_tsne, j_tsne] = knn_distances[i_tsne,  j_tsne]/kod_tsne
+  for (j_tsne in 1:neighbors) {
+    
+      kod_tsne = mean(res[, k] == res[, knn_nn_index[j_tsne]], na.rm = TRUE)
+      knn_distances[j_tsne] = knn_distances[j_tsne]/kod_tsne
         
     }
-    oo_tsne = order(knn_distances[i_tsne, ])
-    knn_distances[i_tsne, ] = knn_distances[i_tsne, oo_tsne]
-    knn_nn_index[i_tsne, ] = knn_nn_index[i_tsne, oo_tsne]
-  }
+
+
+    oo_tsne = order(knn_distances)
+    knn_distances = knn_distances[oo_tsne]
+    knn_nn_index = knn_nn_index[oo_tsne]
+  
 
 
    list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
@@ -618,10 +618,10 @@ knn_distances=knn_Armadillo$distances[ll[[k]],]
   
   parallel::stopCluster(cl = my.cluster)
   
-  for(k in 1:n.cores){
+  for(k in 1:nrow(data)){
       
-    knn_Armadillo$nn_index[ll[[k]],]=res_parallel[[k]]$knn_nn_index
-    knn_Armadillo$distances[ll[[k]],] =res_parallel[[k]]$knn_distances
+    knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
+    knn_Armadillo$distances[k,] =res_parallel[[k]]$knn_distances
 
   }
   close(pb)
