@@ -116,37 +116,75 @@ dimObject=createDimObj(
   return(object)
 }
 
-RunKODAMAmatrix.Seurat = function(object,reduction="pca",dims=50,assay="counts",  ...) {
-  if (!is(object, "Seurat")) {
-    stop("object is not a Seurat object")
-  }
-  if(reduction=="pca"){
-    data=Seurat::Embeddings(object, reduction = "pca")
-    nc=ncol(data)
-    if(nc<dims){
-      dims=nc
-      message("dims is set higher than the number of principal components")
+#' Perform KODAMA.matrix on a Seurat object.
+#' 
+#' @method RunKODAMAmatrix Seurat
+#' @export
+#' @param assay Name of assay to retrieve the data if dimension = null.
+#' @rdname RunKODAMAmatrix 
+RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...) 
+{
+
+  if (is.list(object)){ 
+    #----------------------------------------------------------------------------#
+    #                Running KODAMA on a list of Seurat objects                  #
+    #----------------------------------------------------------------------------#
+    for(i in seq_along(object)){
+      if (!is(object[[i]], "Seurat")) {
+        stop("object is not a Seurat object")
+      }
     }
-    data=data[,1:nc]
-  }
-  if(is.null(reduction)){
-      data= Seurat::GetAssayData(object, assay = assay)
-  }  
-    
-  spat_coord = NULL
-  if(any(names(object@assays)=="Spatial"))
-      spat_coord<- as.matrix(Seurat::GetTissueCoordinates(object))
+    for (i in seq_along(object)){
+      data <- Seurat::Embeddings(object[[i]], reduction = reduction)
+      nc = ncol(data)
+      if (nc < dims) {
+        dims = nc
+        message("dims is set higher than the number of dimensions")
+      }
+      data = data[, 1:dims]
+      spat_coord <- GetTissueCoordinates(object[[i]])
       
-  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
-  KODAMA=CreateDimReducObject(
-    embeddings = data[,1:2],
-    key = "Dimensions_",
-    assay = "RNA",
-    misc=kk
-  )
-  object@reductions$KODAMA=KODAMA
+      kk <- KODAMAextra::KODAMA.matrix.parallel(data = data, 
+                                                spatial = spat_coord, ...)
+      KODAMA = CreateDimReducObject(embeddings = data[ , 1:2], 
+                                    key = "Dimensions_", assay = "RNA", misc = kk)
+      object[[i]]@reductions[["KODAMA"]] <- KODAMA
+      
+    }
+  }else{
+    #----------------------------------------------------------------------------#
+    #                Extract from integrated  or merged Seurat object            #
+    #----------------------------------------------------------------------------#
+    n_slide=length(object@images)
+    if (!is(object, "Seurat")) { # 1- extract data
+      stop("object is not a Seurat object")
+    }
+    data <- Seurat::Embeddings(object, reduction = reduction)
+    nc = ncol(data)
+    if (nc < dims) {
+      dims = nc
+      message("dims is set higher than the number of dimensions")
+    }
+    data = data[, 1:dims]
+    
+    shift=c(0,0)
+    spat_coord=NULL
+    for (f in seq_along(object@images)){ # 2- extract coordinates
+      new_slide=as.matrix(GetTissueCoordinates(object@images[[f]]))
+      slide <- t(t(new_slide)+shift)
+      shift=c(round(max(new_slide[,1])*1.2),0)
+      spat_coord <- rbind(spat_coord, slide)
+    }
+      
+    kk = KODAMAextra::KODAMA.matrix.parallel(data = data, spatial = spat_coord,  ...)
+    KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
+                                  key = "Dimensions_", assay = "RNA", misc = kk)
+    object@reductions$KODAMA = KODAMA
+  }
   return(object)
 }
+
+
 
 RunKODAMAvisualization.default = function(kk, ...) {
 
@@ -175,17 +213,39 @@ RunKODAMAvisualization.SpatialExperiment = function(object, ...) {
 }
 
 RunKODAMAvisualization.Seurat = function(object, ...) {
-  if (!is(object, "Seurat")) {
-    stop("object is not a Seurat object")
+
+  if (is.list(object)){ 
+    for(i in seq_along(object)){
+      if (!is(object[[i]], "Seurat")) {
+        stop("object is not a Seurat object")
+      }
+    }
+    for (i in seq_along(object)){
+      vis=KODAMA.visualization(object[[i]]@reductions$KODAMA@misc, ...)
+      KODAMA=CreateDimReducObject(
+        embeddings = vis,
+        key = "Dimensions_",
+        assay = "RNA",
+        misc=object[[i]]@reductions$KODAMA@misc
+      )
+      object[[i]]@reductions$KODAMA=KODAMA
+      
+    }
+  }else{
+    n_slide=length(object@images)
+    if (!is(object, "Seurat")) { # 1- extract data
+      stop("object is not a Seurat object")
+    }
+    vis=KODAMA.visualization(object@reductions$KODAMA@misc, ...)
+    KODAMA=CreateDimReducObject(
+      embeddings = vis,
+      key = "Dimensions_",
+      assay = "RNA",
+      misc=object@reductions$KODAMA@misc
+    )
+    object@reductions$KODAMA=KODAMA
+
   }
-  vis=KODAMA.visualization(object@reductions$KODAMA@misc, ...)
-  KODAMA=CreateDimReducObject(
-    embeddings = vis,
-    key = "Dimensions_",
-    assay = "RNA",
-    misc=object@reductions$KODAMA@misc
-  )
-  object@reductions$KODAMA=KODAMA
   return(object)
 }
 
