@@ -482,7 +482,7 @@ res_parallel <- foreach(k = 1:M,
                   .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
 {
 
-    library("KODAMA")
+    require("KODAMA")
   
 set.seed(k)
     
@@ -654,7 +654,7 @@ print("Calculation of dissimilarity matrix...")
                   .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
 {
 
-  library("KODAMA")
+  require("KODAMA")
   knn_nn_index=knn_Armadillo$nn_index[k,]
   knn_distances=knn_Armadillo$distances[k,]
                                        
