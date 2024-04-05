@@ -484,7 +484,7 @@ res_parallel <- foreach(k = 1:M,
 if(is.null(lib)){
     library("KODAMA")
 }else{
-    library("KODAMA",lib=lib_address)
+    library("KODAMA",lib=lib)
 }
 set.seed(k)
     
@@ -660,7 +660,7 @@ print("Calculation of dissimilarity matrix...")
 if(is.null(lib)){
     library("KODAMA")
 }else{
-    library("KODAMA",lib=lib_address)
+    library("KODAMA",lib=lib)
 }
   knn_nn_index=knn_Armadillo$nn_index[k,]
   knn_distances=knn_Armadillo$distances[k,]
