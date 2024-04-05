@@ -411,7 +411,7 @@ function (data,                       # Dataset
           f.par.knn = 5, f.par.pls = 5,
           W = NULL, 
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-          splitting = 50, spatial.resolution = 0.3, n.cores = 1) 
+          splitting = 50, spatial.resolution = 0.3, n.cores = 1, lib=NULL) 
 {
   neighbors = min(c(landmarks, nrow(data)/3),500) + 1
   if (sum(is.na(data)) > 0) {
@@ -481,9 +481,11 @@ pb <- txtProgressBar(min = 1, max = M, style = 1)
 res_parallel <- foreach(k = 1:M, 
                   .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
 {
-
-    require("KODAMA")
-  
+if(is.null(lib)){
+    library("KODAMA")
+}else{
+    library("KODAMA",lib=lib_address)
+}
 set.seed(k)
     
 
@@ -654,7 +656,12 @@ print("Calculation of dissimilarity matrix...")
                   .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
 {
 
-  require("KODAMA")
+  
+if(is.null(lib)){
+    library("KODAMA")
+}else{
+    library("KODAMA",lib=lib_address)
+}
   knn_nn_index=knn_Armadillo$nn_index[k,]
   knn_distances=knn_Armadillo$distances[k,]
                                        
