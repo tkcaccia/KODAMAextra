@@ -525,12 +525,13 @@ set.seed(k)
       clu=sample(nsample,nspatialclusters)
       spatialclusters=knn_Armadillo(spatial[clu,],spatial,1)$nn_index
       tab = apply(table(spatialclusters, constrain), 2,which.max)
-      Xconstrain = as.numeric(as.factor(tab[as.character(constrain)]))
+      constrain_clean = tab[as.character(constrain)]
+
     }else{
+      constrain_clean=constrain
     
-    Xconstrain = as.numeric(as.factor(constrain[landpoints]))
-  }
-  
+    }
+  Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
     if(!is.null(W)){
       SV_startingvector = W[landpoints]
       unw = unique(SV_startingvector)
@@ -580,8 +581,8 @@ set.seed(k)
       res_k[-landpoints] = yatta$vect_proj
 
 
-      tab = apply(table(res_k, constrain), 2, which.max)
-      res_k = as.numeric(as.factor(tab[as.character(constrain)]))
+      tab = apply(table(res_k, constrain_clean), 2, which.max)
+      res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
 
     
 
