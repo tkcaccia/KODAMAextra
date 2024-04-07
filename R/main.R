@@ -530,7 +530,9 @@ spatialclusters=as.numeric(kmeans(spatial, nspatialclusters)$cluster)
 ta_const=table(spatialclusters)
 ta_const=ta_const[ta_const>1]
 sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
-spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Armadillo(spatial[sel_cluster_1,],spatial[!sel_cluster_1,],1)$nn_index]
+if(sum(!sel_cluster_1)>0){
+   spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Armadillo(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$nn_index]
+}        
 tab = apply(table(spatialclusters, constrain), 2,which.max)
 constrain_clean = tab[as.character(constrain)]
 
