@@ -324,24 +324,31 @@ refinecluster.giotto = function (object,name, shape = "square"){
 }
     
 
- refine_SVM = function(xy,labels,samples, ...){
-   samples=as.factor(samples)
-   labels=as.factor(labels)
-   sa=levels(samples)
-   refine=rep(NA,length(labels))
-   for(s in sa){
-     print(s)
-     sel=samples==s
-     xr = xy[sel,]
-     yr <- as.factor(as.vector(labels[sel]))
-     
-     model <-svm(x=xr, y=yr,...)
-     refine[sel] <- as.vector(fitted(model))
-   }
-   refine=factor(refine,levels=levels(labels))
-   refine
- }
- 
+   
+refine_SVM = 
+   function (xy, labels, samples, ...) 
+   {
+     samples = as.factor(samples)
+     labels = as.factor(labels)
+     sa = levels(samples)
+     refine = rep(NA, length(labels))
+     for (s in sa) {
+       print(s)
+       sel = samples == s
+       xr = xy[sel, ]
+       yr <- as.factor(as.vector(labels[sel]))
+       if(length(levels(yr))>1){
+         model <- svm(x = xr, y = yr, ...)
+         refine[sel] <- as.vector(fitted(model))
+       } else{
+         refine[sel] <- yr
+       }
+     }
+     refine = factor(refine, levels = levels(labels))
+     refine
+   }   
+   
+
 
 new_trajectory = function(x,y,n=20,data=NULL,knn=10,FUN=mean){
   ii=identify(x,y,order = TRUE)
