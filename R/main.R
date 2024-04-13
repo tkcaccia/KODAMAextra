@@ -613,7 +613,7 @@ constrain_clean = tab[as.character(constrain)]
   }
   
 #  parallel::stopCluster(cl = my.cluster)
-  
+  print("Finished paralle computation")
   for(k in 1:M){
     res[k,] = res_parallel[[k]]$res_k
   }
