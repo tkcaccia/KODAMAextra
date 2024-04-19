@@ -418,8 +418,9 @@ function (data,                       # Dataset
           f.par.knn = 5, f.par.pls = 5,
           W = NULL, 
           constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-          splitting = 50, spatial.resolution = 0.3, n.cores = 1, lib=NULL) 
+          splitting = 50, spatial.resolution = 0.3, n.cores = 1, lib=NULL,seed=1234) 
 {
+  set.seed(seed)
   neighbors = min(c(landmarks, nrow(data)/3),500) + 1
   if (sum(is.na(data)) > 0) {
     stop("Missing values are present")
@@ -498,7 +499,7 @@ if(is.null(lib)){
 }else{
     library("KODAMA",lib=lib)
 }
-set.seed(k)
+set.seed(seed+k)
     
 
   
