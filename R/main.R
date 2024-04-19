@@ -526,7 +526,6 @@ set.seed(seed+k)
     whF = which(!Xfix)
     whT = which(Xfix)
     Xspatial = spatial[landpoints, , drop = FALSE]
-    Tspatial = spatial[-landpoints, , drop = FALSE]
 
     
     if (spatial_flag) {
@@ -576,8 +575,7 @@ constrain_clean = tab[as.character(constrain)]
     while (!is.null(attr(yatta, "class"))) {
       yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
                            f.par.knn,f.par.pls,
-                           Xconstrain, Xfix, shake, Xspatial, 
-                           Tspatial), silent = FALSE)
+                           Xconstrain, Xfix, shake), silent = FALSE)
 
     }
     options(warn = 0)
@@ -613,8 +611,8 @@ constrain_clean = tab[as.character(constrain)]
 
   }
   
-#  parallel::stopCluster(cl = my.cluster)
-  print("Finished paralle computation")
+
+  print("Finished parallel computation")
   for(k in 1:M){
     res[k,] = res_parallel[[k]]$res_k
   }
@@ -623,61 +621,13 @@ constrain_clean = tab[as.character(constrain)]
   
 
     
-#  dissimilarity=NULL
-#  ma=NULL
-#  if(simm_dissimilarity_matrix){
-#    ma = matrix(0, ncol = nsample, nrow = nsample)
-#    for(k in 1:M){
-#      uni = unique(res[k,])
-#      nun = length(uni)
-#      res_k=res[k,]
-#      for (ii in 1:nun) 
-#        ma[res[k,] == uni[ii], res_k ==  uni[ii]] = ma[res_k == uni[ii], res_k == uni[ii]] + 1
-#    }
-#    ma = ma/M
-#    Edist = as.matrix(dist(data))
-#    ma[ma < epsilon] = 0
-#
-#  #  Entropy calculation
-#  #    y = ma
-#  #    diag(y) = NA
-#  #    yy = as.numeric(y)
-#  #    yy = yy[!is.na(yy)]
-#  #    yy = yy/sum(yy)
-#  #    H = -sum(ifelse(yy > 0, yy * log(yy), 0))
-#    
-#    mam = (1/ma) * Edist
-#    mam[is.na(mam)] <- .Machine$double.xmax
-#    mam[is.infinite(mam) & mam > 0] <- .Machine$double.xmax
-#    mam = floyd(mam)
-#    mam[mam == .Machine$double.xmax] <- NA#
-#    prox = Edist/mam
-#    diag(prox) = 1
-#    prox[is.na(prox)] = 0
-#    maxvalue = max(mam, na.rm = TRUE)
-#    mam[is.na(mam)] = maxvalue
-#
-#    dissimilarity = mam
-#  }
 
   knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
   knn_Armadillo$distances = knn_Armadillo$distances[, -1]
   knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
 
 
-### KFOLD
-##f=floor(nsample/n.cores)
-##f.1=f+1
-##mod=nsample%%n.cores
-##ll=list()
-##if(mod!=0){
-##   for(i in 1:mod){
-##     ll[[i]]=(1:f.1)+(i-1)*f.1
-##   }
-## }
-## for(i in (mod+1):n.cores){
-##   ll[[i]]=(1:f)+(i-1)*f+mod
-## }
+
 
 print("Calculation of dissimilarity matrix...")
 
@@ -735,10 +685,6 @@ if(is.null(lib)){
               knn_Armadillo = knn_Armadillo, 
               data = data))
 
-#  return(list(dissimilarity = dissimilarity, acc = accu, proximity = ma, 
-#              v = vect_acc, res = res, 
-#              knn_Armadillo = knn_Armadillo, 
-#              data = data))
 }
 
 
