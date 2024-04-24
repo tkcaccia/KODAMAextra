@@ -28,7 +28,7 @@ RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=5
       dims = nc
       message("dims is set higher than the number of principal components")
     }
-    data= data[ , 1:nc]
+    data= data[ , 1:dims]
   }
   kk <- KODAMA.matrix.parallel(data = data, ...)
   object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
@@ -47,7 +47,7 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
       message("dims is set higher than the number of principal components")
     }
     
-    data= data[ , 1:nc]
+    data= data[ , 1:dims]
   }
   #spat_coord = NULL
   # In this dataset, the names of the assays are "counts" and "logcounts"
@@ -86,7 +86,7 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
       dims=nc
       message("dims is set higher than the number of principal components")
     }
-    data=data[,1:nc]
+    data=data[,1:dims]
   }
     #expression_data= Seurat::GetAssayData(brain, assay = assay)
   spat_coord = NULL
@@ -94,7 +94,7 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
    # Giotto pipeline deals only with spatial omics data
    spat_coord=getSpatialLocations(object,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
    xy_names=spat_coord$cell_ID 
-   spat_coord=as.matrix(spat_coord[,-3])
+   spat_coord=as.matrix(spat_coord[,-ncol(as.matrix(spat_coord))])
    rownames(spat_coord)=xy_names
    
       
