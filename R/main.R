@@ -647,11 +647,11 @@ if(is.null(lib)){
 }
   knn_nn_index=knn_Armadillo$nn_index[k,]
   knn_distances=knn_Armadillo$distances[k,]
-                                       
+  mean_knn_distances=mean(knn_distances)                             
   for (j_tsne in 1:neighbors) {
     
       kod_tsne = mean(res[, k] == res[, knn_nn_index[j_tsne]], na.rm = TRUE)
-      knn_distances[j_tsne] = knn_distances[j_tsne]/kod_tsne
+      knn_distances[j_tsne] = (1+knn_distances[j_tsne])/kod_tsne
         
     }
 
