@@ -421,7 +421,7 @@ function (data,                       # Dataset
           splitting = 50, spatial.resolution = 0.3, n.cores = 1, lib=NULL,seed=1234) 
 {
   set.seed(seed)
-  neighbors = min(c(landmarks, nrow(data)/3),500) + 1
+  neighbors = min(c(landmarks, nrow(data)-1),1000) 
   if (sum(is.na(data)) > 0) {
     stop("Missing values are present")
   } 
@@ -469,7 +469,7 @@ function (data,                       # Dataset
 
 
   res = matrix(nrow = M, ncol = nsample)
-
+res_constrain = matrix(nrow = M, ncol = nsample)
 
   vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
   accu = NULL
@@ -607,7 +607,7 @@ constrain_clean = tab[as.character(constrain)]
     }
 
 
-    list(res_k=res_k)
+    list(res_k=res_k,constrain_k=constrain_clean)
 
   }
   
@@ -615,6 +615,7 @@ constrain_clean = tab[as.character(constrain)]
   print("Finished parallel computation")
   for(k in 1:M){
     res[k,] = res_parallel[[k]]$res_k
+    res_constrain[k,]=res_parallel[[k]]$constrain_k
   }
   close(pb)
 
@@ -683,7 +684,8 @@ if(is.null(lib)){
   return(list(acc = accu, 
               v = vect_acc, res = res, 
               knn_Armadillo = knn_Armadillo, 
-              data = data))
+              data = data,
+             res_constrain=res_constrain))
 
 }
 
