@@ -430,6 +430,8 @@ KODAMA.matrix.parallel =
       spatial_flag = FALSE
     }  else {
       spatial_flag = TRUE
+      snr=sqrt(nsample)
+      aa=apply(spatial,2,function(x) dist(range(x))/snr)
     }
     if (is.null(fix)) 
       fix = rep(FALSE, nsample)
@@ -486,11 +488,7 @@ KODAMA.matrix.parallel =
     doSNOW::registerDoSNOW(my.cluster)
     pb <- txtProgressBar(min = 1, max = M, style = 1)
     
-    
-    
-    snr=sqrt(nsample)
-    aa=apply(spatial,2,function(x) dist(range(x))/snr)
-    
+
 
     
     res_parallel <- foreach(k = 1:M, 
