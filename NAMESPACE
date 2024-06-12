@@ -40,6 +40,6 @@ export(RunKODAMAmatrix)
 export(RunKODAMAvisualization)
 export(refinecluster)
 export(refine_SVM)
-
+export(new_trajectory)
 
 
