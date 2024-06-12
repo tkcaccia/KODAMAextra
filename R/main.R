@@ -350,27 +350,48 @@ refine_SVM =
    
 
 
-new_trajectory = function(x,y,n=20,data=NULL,knn=10,FUN=mean){
+new_trajectory = function(input,n=20,data=NULL,FUN=mean,draw=TRUE, clu=kmeans(input,10)$cluster,...){
+  plot(input,...)
+  x=input[,1]
+  y=input[,2]
   ii=identify(x,y,order = TRUE)
   ii=ii$ind[order(ii$order)]
-  dd= xspline(x[ii], y[ii], shape = c(0,rep(-1, 10-2),0), border="red",draw = FALSE)
+  dd= xspline(x[ii], y[ii], shape = c(0,rep(-1, 10-2),0), draw = FALSE)
+  if(draw){
+    xspline(dd,lwd=5,border="white")
+    xspline(dd,lwd=3,border="red")
+  }
   ll=length(dd$x)
   sel=seq(1,ll,length.out =n)
   
- # points(dd,col=2,bg="#eeeeee",lwd=2,pch=21)
+  # points(dd,col=2,bg="#eeeeee",lwd=2,pch=21)
   dd$x=dd$x[sel]
   dd$y=dd$y[sel]
   xy=cbind(dd$x,dd$y)
-  xy_total=cbind(x,y)
-  selection=knn_Armadillo(xy_total,xy,k = knn)$nn_index
+  
+    
+  kk=as.numeric(knn_Armadillo(as.matrix(xy),input,1)$nn_index)
+  kk[!clu %in% clu[ii]]=NA
+  
+
   if(!is.null(data)){
-     trajectory=apply(selection,1,function(z) apply(data[z,],2,FUN))
+    trajectory=apply(pca,2,function(x) tapply(x,kk,FUN))
+  }else{
+    trajectory=NULL
   }
   points(dd,col=2,bg="#eeeeee",lwd=2,pch=21)
-  list(xy=dd,selection=selection,trajectory=trajectory,
-       settings=list(x=x,y=y,n=n,data=data,knn=knn,FUN=FUN))
+  
+  
+  list(xy=dd,trajectory=trajectory,kk=kk,clustering=clu,
+       settings=list(x=x,y=y,n=n,data=data,FUN=FUN))
 }
 
+
+#dd=new_trajectory(kk_UMAP)
+
+
+
+#plot(xy,col=rainbow(20)[dd$kk],pch=20)
 add_branch = function(dd){
   n_start=identify(dd$xy,n=1)
   start_x=dd$xy$x[n_start]
