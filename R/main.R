@@ -39,16 +39,18 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
   if (!is(object, "SpatialExperiment")) {
     stop("object is not a spatialExperiment object")
   }
-  if(reduction =="PCA"){
-    data <- SingleCellExperiment::reducedDim(object, "PCA")
+  ##############################################
+    #CHECK
+    data <- SingleCellExperiment::reducedDim(object, reduction)
     nc <- ncol(data)
     if(nc < dims){
       dims = nc
-      message("dims is set higher than the number of principal components")
+      message("dims is set higher than the number of features")
     }
     
     data= data[ , 1:dims]
-  }
+  ##############################################
+      
   #spat_coord = NULL
   # In this dataset, the names of the assays are "counts" and "logcounts"
   #if("Spatial"  %in%  names(object@assays)){
