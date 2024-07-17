@@ -172,7 +172,7 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
     shift=c(0,0)
     spat_coord=NULL
     for (f in seq_along(object@images)){ # 2- extract coordinates
-      new_slide=as.matrix(GetTissueCoordinates(object@images[[f]]))
+      new_slide=as.matrix(GetTissueCoordinates(object@images[[f]])[,c("x","y")])
       slide <- t(t(new_slide)+shift)
       shift=c(round(max(new_slide[,1])*1.2),0)
       spat_coord <- rbind(spat_coord, slide)
