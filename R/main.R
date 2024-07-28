@@ -715,3 +715,36 @@ KODAMA.matrix.parallel =
                 res_constrain=res_constrain))
     
   }
+
+
+                                                 
+photo=function(vis,xy,range=0.05,n_pixels=25){
+  
+  image=matrix(0,nrow(xy),ncol=2*n_pixels^2)
+  for(j in 1:nrow(xy)){
+    print(j)
+    tile_sel=xy[,1]>(xy[j,1]-range) & xy[,1]<(xy[j,1]+range) &
+      xy[,2]>(xy[j,2]-range) & xy[,2]<(xy[j,2]+range) 
+    tile_j=t(t(xy[tile_sel,,drop=FALSE])-xy[j,])+range
+    
+    tile_KODAMA_1=vis[tile_sel,1]
+    tile_KODAMA_2=vis[tile_sel,2]
+    
+    tile_j=ceiling(tile_j*10*n_pixels)
+    
+    ma1=matrix(0,ncol=n_pixels,nrow=n_pixels)
+    for(i in 1:nrow(tile_j)){
+      ma1[tile_j[i,]]=tile_KODAMA_1[i]
+    }
+    ma2=matrix(0,ncol=n_pixels,nrow=n_pixels)
+    for(i in 1:nrow(tile_j)){
+      ma2[tile_j[i,]]=tile_KODAMA_2[i]
+    }
+    image[j,]=c(as.numeric(ma1),as.numeric(ma2))
+    
+  }
+  image
+}
+
+
+
