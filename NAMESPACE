@@ -17,6 +17,7 @@ importFrom("umap", "umap.knn", "umap","umap.defaults")
 importFrom("parallel", "makeCluster", "stopCluster")
 importFrom("doParallel", "registerDoParallel")
 importFrom("foreach", "getDoParRegistered", "getDoParWorkers")
+importFrom("misc3d", "kde3d","contour3d")
 
   
 S3method(RunKODAMAmatrix,default)
@@ -42,4 +43,4 @@ export(refinecluster)
 export(refine_SVM)
 export(new_trajectory)
 
-
+export(volume_rendering)
