@@ -748,3 +748,44 @@ photo=function(vis,xy,range=0.05,n_pixels=25){
 
 
 
+volume_rendering <- function(xyz,  tissue_segments,selection=NULL, alpha=NULL, colors=NULL,cells=c(20, 20, 20), level=exp(-3)) {
+  if(!is.factor(tissue_segments)){
+    stop("tissue_segments is not a factor")
+  }
+  option_tissue=levels(tissue_segments)
+  if(!is.null(selection)){
+    option_tissue=selection
+  }
+  if(is.null(colors)){
+    colors=rainbow(length(option_tissue))
+  }
+  if(is.null(alpha)){ 
+    alpha=rep(1,length(option_tissue))
+  }
+  cells[1]=min(cells[1],length(unique(xyz[,1])))
+  cells[2]=min(cells[2],length(unique(xyz[,2])))
+  cells[3]=min(cells[3],length(unique(xyz[,3])))
+  sel.alpha=alpha>0
+  option_tissue=option_tissue[sel.alpha]
+  alpha=alpha[sel.alpha]
+  colors=colors[sel.alpha]
+  for (i in 1:length(option_tissue) ){
+    segment <- option_tissue[i]
+    sel <- tissue_segments == segment
+    d <- kde3d(xyz[sel, 1], xyz[sel, 2], xyz[sel, 3], n = cells)
+    e=array(0,dim=cells+2)
+    e[2:(cells[1]+1),2:(cells[2]+1),2:(cells[3]+1)]=d$d
+    dx=c(d$x[1]-d$x[2],d$x,d$x[cells[1]]+d$x[2]-d$x[1])
+    dy=c(d$y[1]-d$y[2],d$y,d$y[cells[2]]+d$y[2]-d$y[1])
+    dz=c(d$z[1]-d$z[2],d$z,d$z[cells[3]]+d$z[2]-d$z[1])
+    contour3d(e, level=level, dx, dy, dz,
+              color = colors[i],  scale = FALSE,
+              engine = "rgl", draw = TRUE, alpha = alpha[i], add = (i != 1))
+  }
+  rglwidget()
+}
+
+                                                 
+
+
+
