@@ -753,15 +753,29 @@ volume_rendering <- function(xyz,  tissue_segments,selection=NULL, alpha=NULL, c
     stop("tissue_segments is not a factor")
   }
   option_tissue=levels(tissue_segments)
-  if(!is.null(selection)){
-    option_tissue=selection
-  }
   if(is.null(colors)){
     colors=rainbow(length(option_tissue))
+  }else{
+    if(length(option_tissue)!=length(alpha)){
+      stop("The number of color does not match")
+    }
   }
   if(is.null(alpha)){ 
     alpha=rep(1,length(option_tissue))
+  }else{
+    if(length(option_tissue)!=length(alpha)){
+      stop("The number of alpha does not match")
+    }
   }
+  if(!is.null(selection)){
+    option_tissue=selection
+  }
+    ww=which(levels(tissue_segments) %in% option_tissue)
+    colors=colors[ww]
+    alpha=alpha[ww]
+    
+    
+
   cells[1]=min(cells[1],length(unique(xyz[,1])))
   cells[2]=min(cells[2],length(unique(xyz[,2])))
   cells[3]=min(cells[3],length(unique(xyz[,3])))
