@@ -353,45 +353,86 @@ function (xy, labels, samples=NULL, ...)
   refine
 }
 
-new_trajectory = function(input,n=20,data=NULL,FUN=mean,draw=TRUE, clu=kmeans(input,10)$cluster,...){
-  plot(input,...)
+
+new_trajectory = function(input,plotting=FALSE,n=20,data=NULL,draw=TRUE, knn=10,trace=NULL,...){
+  if(plotting){
+    plot(input,...)
+  }
   x=input[,1]
   y=input[,2]
-  ii=identify(x,y,order = TRUE)
-  ii=ii$ind[order(ii$order)]
-  dd= xspline(x[ii], y[ii], shape = c(0,rep(-1, 10-2),0), draw = FALSE)
+  if(is.null(trace)){
+    ii=identify(x,y,order = TRUE,plot=FALSE)
+    ii=ii$ind[order(ii$order)]
+    xx=x[ii]
+    yy=y[ii]
+    dd= xspline(xx, yy, shape = c(0,rep(-1, 10-2),0), draw = FALSE)
+    ll=length(dd$x)
+    new_x=NULL
+    new_y=NULL
+    for(i in 1:(ll-1)){
+      xxi=dd$x[(0:1)+i]
+      yyi=dd$y[(0:1)+i]
+      d2=data.frame(x=xxi,y=yyi)
+      xp=seq(xxi[1],xxi[2],length.out=n)
+      yp=predict(lm(y~x,data=d2),data.frame(x=xp))
+      new_x=c(new_x,xp)
+      new_y=c(new_y,yp)
+    }
+    di=NULL
+    di[1]=0
+    for(i in 2:length(new_x)){
+      di[i]=di[i-1]+dist(cbind(new_x[((-1):0)+i],new_y[((-1):0)+i]))
+    }
+
+    section=seq(0,di[length(new_x)],length.out=n)
+    temp=knn_Armadillo(as.matrix(di),as.matrix(section),1)$nn_index
+    dd$x=new_x[temp]
+    dd$y=new_y[temp]
+  }else{
+    di=trace
+  } 
   if(draw){
     xspline(dd,lwd=5,border="white")
     xspline(dd,lwd=3,border="red")
   }
-  ll=length(dd$x)
-  sel=seq(1,ll,length.out =n)
-  
-  # points(dd,col=2,bg="#eeeeee",lwd=2,pch=21)
-  dd$x=dd$x[sel]
-  dd$y=dd$y[sel]
   xy=cbind(dd$x,dd$y)
   
-    
-  kk=as.numeric(knn_Armadillo(as.matrix(xy),input,1)$nn_index)
-  kk[!clu %in% clu[ii]]=NA
   
+  kk=knn_Armadillo(input,as.matrix(xy),knn)$nn_index
 
+  
+  
   if(!is.null(data)){
-    trajectory=apply(pca,2,function(x) tapply(x,kk,FUN))
+    trajectory=t(apply(kk,1,function(x) colMeans(data[x,])))
   }else{
     trajectory=NULL
   }
   points(dd,col=2,bg="#eeeeee",lwd=2,pch=21)
   
   
-  list(xy=dd,trajectory=trajectory,kk=kk,clustering=clu,
-       settings=list(x=x,y=y,n=n,data=data,FUN=FUN))
+  list(xy=dd,trajectory=trajectory,kk=kk,
+       settings=list(x=x,y=y,n=n,data=data))
 }
 
 
-#dd=new_trajectory(kk_UMAP)
+# plot(as.raster(imgData(spe)$data[[2]]))
+# axis(1)
+# axis(2)
 
+# sel=colData(spe)$sample_id=="Acinar_Cell_Carcinoma"
+# xy_sel=xy_original[sel,]
+# xy_sel=xy_sel*0.02184042
+# xy_sel[,2]=550-xy_sel[,2]
+# points(xy_sel,cex=0.5,type="n")
+
+# spe@int_metadata$imgData$data[[2]]
+# data=t(logcounts(spe)[,sel])
+# trace=nn$xy
+# nn=new_trajectory (xy_sel,data = data,trace=trace)
+# ma=multi_analysis(nn$trajectory,1:20,FUN="correlation.test",method="spearman")
+
+
+                       
 
 
 #plot(xy,col=rainbow(20)[dd$kk],pch=20)
