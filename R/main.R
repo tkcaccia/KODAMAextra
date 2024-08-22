@@ -354,65 +354,68 @@ function (xy, labels, samples=NULL, ...)
 }
 
 
-new_trajectory = function(input,plotting=FALSE,n=20,data=NULL,draw=TRUE, knn=10,trace=NULL,...){
-  if(plotting){
-    plot(input,...)
-  }
-  x=input[,1]
-  y=input[,2]
-  if(is.null(trace)){
-    ii=identify(x,y,order = TRUE,plot=FALSE)
-    ii=ii$ind[order(ii$order)]
-    xx=x[ii]
-    yy=y[ii]
-    dd= xspline(xx, yy, shape = c(0,rep(-1, 10-2),0), draw = FALSE)
-    ll=length(dd$x)
-    new_x=NULL
-    new_y=NULL
-    for(i in 1:(ll-1)){
-      xxi=dd$x[(0:1)+i]
-      yyi=dd$y[(0:1)+i]
-      d2=data.frame(x=xxi,y=yyi)
-      xp=seq(xxi[1],xxi[2],length.out=n)
-      yp=predict(lm(y~x,data=d2),data.frame(x=xp))
-      new_x=c(new_x,xp)
-      new_y=c(new_y,yp)
-    }
-    di=NULL
-    di[1]=0
-    for(i in 2:length(new_x)){
-      di[i]=di[i-1]+dist(cbind(new_x[((-1):0)+i],new_y[((-1):0)+i]))
-    }
 
-    section=seq(0,di[length(new_x)],length.out=n)
-    temp=knn_Armadillo(as.matrix(di),as.matrix(section),1)$nn_index
-    dd$x=new_x[temp]
-    dd$y=new_y[temp]
-  }else{
-    di=trace
-  } 
-  if(draw){
-    xspline(dd,lwd=5,border="white")
-    xspline(dd,lwd=3,border="red")
-  }
-  xy=cbind(dd$x,dd$y)
-  
-  
-  kk=knn_Armadillo(input,as.matrix(xy),knn)$nn_index
 
-  
-  
-  if(!is.null(data)){
-    trajectory=t(apply(kk,1,function(x) colMeans(data[x,])))
-  }else{
-    trajectory=NULL
+new_trajectory =
+function (input, plotting = FALSE, n = 20, data = NULL, draw = TRUE, 
+          knn = 10, trace = NULL, ...) 
+{
+  if (plotting) {
+    plot(input, ...)
   }
-  points(dd,col=2,bg="#eeeeee",lwd=2,pch=21)
-  
-  
-  list(xy=dd,trajectory=trajectory,kk=kk,
-       settings=list(x=x,y=y,n=n,data=data))
+  x = input[, 1]
+  y = input[, 2]
+  if (is.null(trace)) {
+    ii = identify(x, y, order = TRUE, plot = FALSE)
+    ii = ii$ind[order(ii$order)]
+    xx = x[ii]
+    yy = y[ii]
+    dd = xspline(xx, yy, shape = c(0, rep(-1, 10 - 2), 0), 
+                 draw = FALSE)
+    ll = length(dd$x)
+    new_x = NULL
+    new_y = NULL
+    for (i in 1:(ll - 1)) {
+      xxi = dd$x[(0:1) + i]
+      yyi = dd$y[(0:1) + i]
+      d2 = data.frame(x = xxi, y = yyi)
+      xp = seq(xxi[1], xxi[2], length.out = n)
+      yp = predict(lm(y ~ x, data = d2), data.frame(x = xp))
+      new_x = c(new_x, xp)
+      new_y = c(new_y, yp)
+    }
+    di = NULL
+    di[1] = 0
+    for (i in 2:length(new_x)) {
+      di[i] = di[i - 1] + dist(cbind(new_x[((-1):0) + i], 
+                                     new_y[((-1):0) + i]))
+    }
+    section = seq(0, di[length(new_x)], length.out = n)
+    temp = knn_Armadillo(as.matrix(di), as.matrix(section), 
+                         1)$nn_index
+    dd$x = new_x[temp]
+    dd$y = new_y[temp]
+  }  else {
+    dd = trace
+  }
+  if (draw) {
+    xspline(dd, lwd = 5, border = "white")
+    xspline(dd, lwd = 3, border = "red")
+  }
+  xy = cbind(dd$x, dd$y)
+  kk = knn_Armadillo(input, as.matrix(xy), knn)$nn_index
+  if (!is.null(data)) {
+    trajectory = t(apply(kk, 1, function(x) colMeans(as.matrix(data)[x, ])))
+  }  else {
+    trajectory = NULL
+  }
+  points(dd$x[1],dd$y[1], col = 2, bg = "#eeeeee", lwd = 2, pch = 22,cex=2)
+  points(dd$x[-1],dd$y[-1], col = 2, bg = "#eeeeee", lwd = 2, pch = 21)
+  list(xy = dd, trajectory = trajectory, kk = kk, settings = list(x = x, 
+                                                                  y = y, n = n, data = data))
 }
+
+
 
 
 # plot(as.raster(imgData(spe)$data[[2]]))
