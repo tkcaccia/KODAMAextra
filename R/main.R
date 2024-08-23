@@ -496,7 +496,11 @@ add_branch = function(dd){
   
 }
 
-
+Table=function(a,b){
+  x=cbind(a,b)
+  bigtabulate::bigtable(x, ccols = c(1,2))
+}    
+     
 
 
 KODAMA.matrix.parallel =
@@ -636,7 +640,7 @@ KODAMA.matrix.parallel =
           if(sum(!sel_cluster_1)>0){
             spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Armadillo(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$nn_index]
           }        
-          tab = apply(table(spatialclusters, constrain), 2,which.max)
+          tab = apply(Table(spatialclusters, constrain), 2,which.max)
           constrain_clean = tab[as.character(constrain)]
           
           
