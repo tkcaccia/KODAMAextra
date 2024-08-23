@@ -53,10 +53,25 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
       
   #spat_coord = NULL
   # In this dataset, the names of the assays are "counts" and "logcounts"
-  #if("Spatial"  %in%  names(object@assays)){
-    spat_coord<- as.matrix(SpatialExperiment::spatialCoords(object))
-   # }
+ 
 
+    spat_coord <- as.matrix(SpatialExperiment::spatialCoords(object))
+    samples <- names(table(colData(spe)$sample_id))
+    
+    ma=0
+    for (j in 1:length(samples)) {
+      sel <- samples[j] == colData(spe)$sample_id
+      spat_coord[sel, 1]=spat_coord[sel, 1]+ma
+      ran=range(spat_coord[sel, 1])
+      ma=ran[2]+ dist(ran)[1]*0.5
+    }
+
+
+    
+
+    
+
+    
   kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
   #I have this error when I run the following line
   
@@ -97,6 +112,7 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
    spat_coord=getSpatialLocations(object,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
    xy_names=spat_coord$cell_ID 
    spat_coord=as.matrix(spat_coord[,-ncol(as.matrix(spat_coord))])
+    
    rownames(spat_coord)=xy_names
    
       
@@ -177,6 +193,21 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
       shift=c(round(max(new_slide[,1])*1.2),0)
       spat_coord <- rbind(spat_coord, slide)
     }
+######################################################################################
+      
+    samples <- names(table(object@meta.data$orig.ident))
+    
+    ma=0
+    for (j in 1:length(samples)) {
+      sel <- samples[j] == object@meta.data$orig.ident
+      spat_coord[sel, 1]=spat_coord[sel, 1]+ma
+      ran=range(spat_coord[sel, 1])
+      ma=ran[2]+ dist(ran)[1]*0.5
+    }
+
+#######################################################################################
+
+      
       
     kk = KODAMAextra::KODAMA.matrix.parallel(data = data, spatial = spat_coord,  ...)
     KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
