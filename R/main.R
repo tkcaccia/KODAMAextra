@@ -499,12 +499,6 @@ add_branch = function(dd){
 
 
 
-
-
-
-
-
-
 KODAMA.matrix.parallel =
   function (data,                       # Dataset
             spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
@@ -513,7 +507,7 @@ KODAMA.matrix.parallel =
             f.par.knn = 5, f.par.pls = 5,
             W = NULL, 
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-            splitting = 50, spatial.resolution = 0.3, n.cores = 1, lib=NULL,seed=1234) 
+            splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
   {
     set.seed(seed)
     neighbors = min(c(landmarks, nrow(data)-1),1000) 
@@ -565,8 +559,8 @@ KODAMA.matrix.parallel =
     
     
     
-    res = matrix(nrow = M, ncol = nsample)
-    res_constrain = matrix(nrow = M, ncol = nsample)
+#    res = matrix(nrow = M, ncol = nsample)
+#    res_constrain = matrix(nrow = M, ncol = nsample)
     
     vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
     accu = NULL
@@ -587,17 +581,17 @@ KODAMA.matrix.parallel =
     doSNOW::registerDoSNOW(my.cluster)
     pb <- txtProgressBar(min = 1, max = M, style = 1)
     
-
-
+    
+    res <- big.matrix(M, nsample, type = "double", backingfile = "big_matrix.bin.res", descriptorfile = "big_matrix.desc.res")
+    res_constrain <- big.matrix(M, nsample, type = "double", backingfile = "big_matrix.bin.res_constrain", descriptorfile = "big_matrix.desc.res_constrain")
+    
+    
     
     res_parallel <- foreach(k = 1:M, 
-                            .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
+                            .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
+                            .packages = c('bigmemory','KODAMA')) %dopar%
       {
-        if(is.null(lib)){
-          library("KODAMA")
-        }else{
-          library("KODAMA",lib=lib)
-        }
+        
         set.seed(seed+k)
         
         
@@ -709,20 +703,18 @@ KODAMA.matrix.parallel =
         }
         
         
-        list(res_k=res_k,constrain_k=constrain_clean)
+        res <- attach.big.matrix("big_matrix.desc.res")  # Attach the big.matrix in the worker
+        res_constrain <- attach.big.matrix("big_matrix.desc.res_constrain")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
         
+        res[k, ] <- res_k  # Store the result in the big.matrix
+        res_constrain[k, ] <- constrain_clean  # Store the result in the big.matrix
+        
+        NULL  # Return NULL to avoid accumulating results in memory
       }
     
-    
-    print("Finished parallel computation")
-    for(k in 1:M){
-      res[k,] = res_parallel[[k]]$res_k
-      res_constrain[k,]=res_parallel[[k]]$constrain_k
-    }
+    writeLines("\nFinished parallel computation")
+
     close(pb)
-    
-    
-    
     
     
     knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
@@ -738,15 +730,16 @@ KODAMA.matrix.parallel =
     
     
     res_parallel <- foreach(k = 1:nrow(data), 
-                            .options.snow = list(progress = function(n) setTxtProgressBar(pb, n))) %dopar%
+                            .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
+                            .packages = c('bigmemory','KODAMA')) %dopar%
       {
         
+        res <- attach.big.matrix("big_matrix.desc.res")  # Attach the big.matrix in the worker
+        res_constrain <- attach.big.matrix("big_matrix.desc.res_constrain")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
         
-        if(is.null(lib)){
-          library("KODAMA")
-        }else{
-          library("KODAMA",lib=lib)
-        }
+        
+        
+    
         knn_nn_index=knn_Armadillo$nn_index[k,]
         knn_distances=knn_Armadillo$distances[k,]
         mean_knn_distances=mean(knn_distances)                             
@@ -790,6 +783,9 @@ KODAMA.matrix.parallel =
                 res_constrain=res_constrain))
     
   }
+
+
+
 
 
                                                  
