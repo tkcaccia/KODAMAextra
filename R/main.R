@@ -496,11 +496,6 @@ add_branch = function(dd){
   
 }
 
-Table=function(a,b){
-  x=cbind(a,b)
-  bigtabulate::bigtable(x, ccols = c(1,2))
-}    
-     
 
 
 KODAMA.matrix.parallel =
@@ -640,9 +635,19 @@ KODAMA.matrix.parallel =
           if(sum(!sel_cluster_1)>0){
             spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Armadillo(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$nn_index]
           }        
-          tab = apply(Table(spatialclusters, constrain), 2,which.max)
-          constrain_clean = tab[as.character(constrain)]
-          
+
+                                         
+    #######      tab = apply(table(spatialclusters, constrain), 2,which.max)
+    #######      constrain_clean = tab[as.character(constrain)]
+    ####### Does not work for big number
+
+            constrain_clean=NULL
+         for(ic in 1:max(constrain)){
+           constrain_clean[ic==constrain]=as.numeric(names(which.max(table(spatialclusters[ic==constrain]))))
+         }
+
+
+
           
         }else{
           constrain_clean=constrain
@@ -655,15 +660,29 @@ KODAMA.matrix.parallel =
           unw = unw[-which(is.na(unw))]
           ghg = is.na(SV_startingvector)
           SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
-          tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
-          XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+            
+          #################  tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
+          ################   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+         XW=NULL
+         for(ic in 1:max(Xconstrain)){
+           XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
+         }
+
+            
         }else{
           if (landmarks<200) {
             XW = Xconstrain
           } else {
             clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-            tab = apply(table(clust, Xconstrain), 2, which.max)
-            XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+         #############   tab = apply(table(clust, Xconstrain), 2, which.max)
+         #############   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+
+         XW=NULL
+         for(ic in 1:max(Xconstrain)){
+           XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
+         }
+
+              
           }
         }
         
@@ -697,11 +716,14 @@ KODAMA.matrix.parallel =
           res_k[-landpoints] = yatta$vect_proj
           
           
-          tab = apply(table(res_k, constrain_clean), 2, which.max)
-          res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
+  ###########        tab = apply(table(res_k, constrain_clean), 2, which.max)
+  ###########        res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
           
-          
-          
+         res_k_temp=NULL
+         for(ic in 1:max(constrain_clean)){
+           res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
+         }
+         res_k=res_k_temp 
           
           
         }
