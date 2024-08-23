@@ -5,7 +5,7 @@ Authors@R: c(person("Stefano", "Cacciatore", role = c("aut", "trl", "cre"),email
 Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
 Title: Knowledge Discovery by Accuracy Maximization
 Description: Additional function for the KODAMA package.
-Depends: R (>= 2.10.0), KODAMA (>= 3.0), parallel, doParallel, foreach, e1071, rgl, misc3d
+Depends: R (>= 2.10.0), KODAMA (>= 3.0), parallel, doParallel, foreach, e1071, misc3d, rgl
 Imports: Rcpp (>= 0.12.4)
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: knitr, rmarkdown
