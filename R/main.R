@@ -743,9 +743,9 @@ KODAMA.matrix.parallel =
     close(pb)
     
     
-    knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
-    knn_Armadillo$distances = knn_Armadillo$distances[, -1]
-    knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
+    ######## knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
+    ######## knn_Armadillo$distances = knn_Armadillo$distances[, -1]
+    ######## knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
     
     
     
@@ -766,8 +766,13 @@ KODAMA.matrix.parallel =
         
         
     
-        knn_nn_index=knn_Armadillo$nn_index[k,]
-        knn_distances=knn_Armadillo$distances[k,]
+        ########### knn_nn_index=knn_Armadillo$nn_index[k,]
+        ########### knn_distances=knn_Armadillo$distances[k,]
+        
+        knn_Armadillo = knn_Armadillo(data,data[k,,drop=FALSE], neighbors + 1)
+        knn_distances = knn_Armadillo$distances[, -1]
+        knn_nn_index = knn_Armadillo$nn_index[, -1]  
+          
         mean_knn_distances=mean(knn_distances)                             
         for (j_tsne in 1:neighbors) {
           
@@ -789,6 +794,11 @@ KODAMA.matrix.parallel =
     
     parallel::stopCluster(cl = my.cluster)
     
+    knn_Armadillo=list()
+    knn_Armadillo$nn_index=matrix(ncol=neighbors,nrow=nrow(data) )
+    knn_Armadillo$distances=matrix(ncol=neighbors,nrow=nrow(data) )
+                                                                
+                            
     for(k in 1:nrow(data)){
       
       knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
