@@ -801,7 +801,7 @@ KODAMA.matrix.parallel =
     parallel::stopCluster(cl = my.cluster)
     
     knn_Armadillo=list()
-    knn_Armadillo$nn_index=Kknn_index
+    knn_Armadillo$nn_index=KKnn_index
     knn_Armadillo$distances=KKdistances
                                                                 
                             
