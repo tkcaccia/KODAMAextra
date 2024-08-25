@@ -748,6 +748,8 @@ KODAMA.matrix.parallel =
     ######## knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
     
     
+    KKnn_index <- big.matrix(nsample,neighbors, type = "double", backingfile = "big_matrix.bin.KKnn_index", descriptorfile = "big_matrix.desc.KKnn_index")
+    KKdistances <- big.matrix(nsample, neighbors, type = "double", backingfile = "big_matrix.bin.KKdistances", descriptorfile = "big_matrix.desc.KKdistances")
     
     
     print("Calculation of dissimilarity matrix...")
@@ -762,6 +764,9 @@ KODAMA.matrix.parallel =
         
         res <- attach.big.matrix("big_matrix.desc.res")  # Attach the big.matrix in the worker
         res_constrain <- attach.big.matrix("big_matrix.desc.res_constrain")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
+
+        KKnn_index <- attach.big.matrix("big_matrix.desc.KKnn_index")  # Attach the big.matrix in the worker
+        KKdistances <- attach.big.matrix("big_matrix.desc.KKdistances")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
         
         
         
@@ -786,25 +791,26 @@ KODAMA.matrix.parallel =
         knn_distances = knn_distances[oo_tsne]
         knn_nn_index = knn_nn_index[oo_tsne]
         
-        
-        
-        list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
-        
+        KKnn_index[k, ] = knn_nn_index
+        KKdistances[k, ] = knn_distances
+          
+    #    list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
+     NULL   
       }
     
     parallel::stopCluster(cl = my.cluster)
     
     knn_Armadillo=list()
-    knn_Armadillo$nn_index=matrix(ncol=neighbors,nrow=nrow(data) )
-    knn_Armadillo$distances=matrix(ncol=neighbors,nrow=nrow(data) )
+    knn_Armadillo$nn_index=Kknn_index
+    knn_Armadillo$distances=KKdistances
                                                                 
                             
-    for(k in 1:nrow(data)){
+   # for(k in 1:nrow(data)){
       
-      knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
-      knn_Armadillo$distances[k,] =res_parallel[[k]]$knn_distances
+   #   knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
+   #   knn_Armadillo$distances[k,] =res_parallel[[k]]$knn_distances
       
-    }
+  #  }
     close(pb)
     
     
