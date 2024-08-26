@@ -55,35 +55,12 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
   # In this dataset, the names of the assays are "counts" and "logcounts"
  
 
-    spat_coord <- as.matrix(SpatialExperiment::spatialCoords(object))
-    samples <- names(table(colData(spe)$sample_id))
-    
-    ma=0
-    for (j in 1:length(samples)) {
-      sel <- samples[j] == colData(spe)$sample_id
-      spat_coord[sel, 1]=spat_coord[sel, 1]+ma
-      ran=range(spat_coord[sel, 1])
-      ma=ran[2]+ dist(ran)[1]*0.5
-    }
+  spat_coord <- as.matrix(SpatialExperiment::spatialCoords(object))
+  samples <- colData(spe)$sample_id
+      
+  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, samples = samples, ...)
 
-
-    
-
-    
-
-    
-  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
-  #I have this error when I run the following line
-  
-  #SingleCellExperiment::reducedDim(object, "KODAMA") <- kk
-  #Error in .set_internal_character(x, type, value, getfun = int_colData,  : 
-  #invalid 'value' in 'reducedDim(<SpatialExperiment>, type="character") <- value':
-  # 'value' should have number of rows equal to 'ncol(x)'
-  
-  # X FARAG: a class is organize with specific variables. You cannot simply assign a list to the class reducedDim.
-    
- 
-    
+   
   
   #So I assigned KODAMA object manually
   object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
@@ -501,6 +478,7 @@ add_branch = function(dd){
 KODAMA.matrix.parallel =
   function (data,                       # Dataset
             spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
+            samples = NULL, 
             M = 100, Tcycle = 20, 
             FUN = c("PLS","PK","KNN"), 
             f.par.knn = 5, f.par.pls = 5,
@@ -524,6 +502,22 @@ KODAMA.matrix.parallel =
       spatial_flag = TRUE
       snr=sqrt(nsample)
       aa=apply(spatial,2,function(x) dist(range(x))/snr)
+
+      # A horizontalization of the spatial information is done
+      # Each different sample will be placed side by side
+               
+      if(!is.null(samples)){
+        samples_names=names(table(samples))          
+        if(length(samples_names)>1){
+          ma=0
+          for (j in 1:length(samples_names)) {
+            sel <- samples_names[j] == samples
+            spatial[sel, 1]=spatial[sel, 1]+ma
+            ran=range(spatial[sel, 1])
+            ma=ran[2]+ dist(ran)[1]*0.5
+          }
+        }
+      }
     }
     if (is.null(fix)) 
       fix = rep(FALSE, nsample)
@@ -542,7 +536,7 @@ KODAMA.matrix.parallel =
     } else{
       simm_dissimilarity_matrix=FALSE
     }
-    
+
     nspatialclusters=round(landmarks*spatial.resolution)
     
     QC=quality_control(data_row = nsample,
