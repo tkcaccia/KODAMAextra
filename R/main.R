@@ -138,9 +138,10 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
       }
       data = data[, 1:dims]
       spat_coord <- GetTissueCoordinates(object[[i]])
-      
+      samples <- object[[i]]@meta.data$orig.ident
+    
       kk <- KODAMAextra::KODAMA.matrix.parallel(data = data, 
-                                                spatial = spat_coord, ...)
+                                                spatial = spat_coord, samples = samples, ...)
       KODAMA = CreateDimReducObject(embeddings = data[ , 1:2], 
                                     key = "Dimensions_", assay = "RNA", misc = kk)
       object[[i]]@reductions[["KODAMA"]] <- KODAMA
@@ -172,21 +173,14 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
     }
 ######################################################################################
       
-    samples <- names(table(object@meta.data$orig.ident))
+    samples <- object@meta.data$orig.ident
     
-    ma=0
-    for (j in 1:length(samples)) {
-      sel <- samples[j] == object@meta.data$orig.ident
-      spat_coord[sel, 1]=spat_coord[sel, 1]+ma
-      ran=range(spat_coord[sel, 1])
-      ma=ran[2]+ dist(ran)[1]*0.5
-    }
 
 #######################################################################################
 
       
       
-    kk = KODAMAextra::KODAMA.matrix.parallel(data = data, spatial = spat_coord,  ...)
+    kk = KODAMAextra::KODAMA.matrix.parallel(data = data, spatial = spat_coord, samples = samples, ...)
     KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
                                   key = "Dimensions_", assay = "RNA", misc = kk)
     object@reductions$KODAMA = KODAMA
