@@ -44,3 +44,4 @@ export(refine_SVM)
 export(new_trajectory)
 
 export(volume_rendering)
+export(passing.message)
