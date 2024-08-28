@@ -903,49 +903,57 @@ volume_rendering <- function(xyz,  tissue_segments,selection=NULL, alpha=NULL, c
 
 
 
-passing.message = function(data,spatial,number_knn=10,quantile=0.5,n.cores=1){
+passing.message <- function(data, spatial, number_knn = 10, quantile = 0.5, n.cores = 1) {
   
-  nspots=nrow(data)
-  nvariables=ncol(data)
+  # Get dimensions of the input data
+  nspots <- nrow(data)
+  nvariables <- ncol(data)
   
-  my.cluster <- parallel::makeCluster(
-    n.cores, 
-    type = "PSOCK"
-  )
-  print(my.cluster)
+  # Set up parallel backend
+  my.cluster <- parallel::makeCluster(n.cores, type = "PSOCK")
   doParallel::registerDoParallel(cl = my.cluster)
-  foreach::getDoParRegistered()
-  foreach::getDoParWorkers()
-  
-  doSNOW::registerDoSNOW(my.cluster)
   pb <- txtProgressBar(min = 1, max = nspots, style = 1)
   
-  data.2 <- big.matrix(nspots, nvariables, type = "double", backingfile = "big_matrix.bin.data.2", descriptorfile = "big_matrix.desc.data.2")
+  # Initialize result matrix
+  data.2 <- matrix(0, nrow = nspots, ncol = nvariables)
   
-  res_parallel <- foreach(h = 1:nspots, 
-                          .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
-                          .packages = c('bigmemory','KODAMA')) %dopar%
-    {
-      data.2 <- attach.big.matrix("big_matrix.desc.data.2")  
-      knn = knn_Armadillo(spatial,spatial[h,,drop=FALSE], number_knn)
-      temp=rep(0,nvariables)
-      RNA.temp=data[knn$nn_index,]
-      
-
-      knn_gene=knn_Armadillo(RNA.temp,RNA.temp[1,,drop=FALSE],round(number_knn*quantile))$nn_index
-      
-      
-      for(i in 1:number_knn){
-        temp=temp+RNA.temp[i,]/(1+knn$distances[,i]^2)
-      }
-      data.2[h,]=temp
-      NULL
-    }
+  # Parallel processing
+  res_parallel <- foreach(h = 1:nspots, .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
+                          .packages = c("KODAMA")) %dopar% {
+                            
+                            # Find nearest neighbors using spatial information
+                            knn <- knn_Armadillo(spatial, spatial[h, , drop = FALSE], number_knn)
+                            
+                            # Initialize a temporary vector for computations
+                            temp <- numeric(nvariables)
+                            RNA.temp <- data[knn$nn_index, ]
+                            
+                            # Compute knn_gene (optional if needed for further calculations)
+                            knn_gene <- knn_Armadillo(RNA.temp, RNA.temp[1, , drop = FALSE], 
+                                                      round(number_knn * quantile))$nn_index
+                            
+                            # Compute weighted sum for each variable
+                            for (i in 1:number_knn) {
+                              temp <- temp + RNA.temp[i, ] / (1 + knn$distances[, i]^2)
+                            }
+                            
+                            # Return the computed row
+                            temp
+                          }
   
+  # Combine results back into data.2 matrix
+  for (h in 1:nspots) {
+    data.2[h, ] <- res_parallel[[h]]
+  }
+  
+  # Stop the cluster
   parallel::stopCluster(cl = my.cluster)
-  data.2=as.matrix(data.2)
-  rownames(data.2)=rownames(data)
-  colnames(data.2)=colnames(data)
+  
+  # Set row and column names to match the input data
+  rownames(data.2) <- rownames(data)
+  colnames(data.2) <- colnames(data)
+  
+  # Return the result matrix
   data.2
 }
 
