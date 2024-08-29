@@ -25,6 +25,7 @@ S3method(RunKODAMAmatrix,SingleCellExperiment)
 S3method(RunKODAMAmatrix,SpatialExperiment)
 S3method(RunKODAMAmatrix,Seurat)
 S3method(RunKODAMAmatrix,giotto)
+
 S3method(RunKODAMAvisualization,default)
 S3method(RunKODAMAvisualization,SingleCellExperiment)
 S3method(RunKODAMAvisualization,SpatialExperiment)
@@ -36,10 +37,18 @@ S3method(refinecluster,SpatialExperiment)
 S3method(refinecluster,Seurat)
 S3method(refinecluster,giotto)
 
+S3method(multi_SPARKX,default)
+S3method(refinecluster,SpatialExperiment)
+# S3method(multi_SPARKX,Seurat)
+# S3method(multi_SPARKX,giotto)
+
+
+
 export(KODAMA.matrix.parallel)
 export(RunKODAMAmatrix)
 export(RunKODAMAvisualization)
 export(refinecluster)
+export(multi_SPARKX)
 export(refine_SVM)
 export(new_trajectory)
 
