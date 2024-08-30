@@ -54,3 +54,5 @@ export(new_trajectory)
 
 export(volume_rendering)
 export(passing.message)
+
+export(plot_slide)
