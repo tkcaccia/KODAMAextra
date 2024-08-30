@@ -1011,8 +1011,8 @@ multi_SPARKX.SpatialExperiment = function(object, ...) {
     stop("object is not a spatialExperiment object")
   }
   
-  data=t(logcounts(object))
-  spatial=spatialCoords(object)
+  data=as.matrix(t(logcounts(object)))
+  spatial=as.matrix(spatialCoords(object))
   samples=as.factor(colData(object)$sample_id)
   top=multi_SPARKX(data,spatial,samples)
   return(top)
