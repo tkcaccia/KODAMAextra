@@ -38,7 +38,7 @@ S3method(refinecluster,Seurat)
 S3method(refinecluster,giotto)
 
 S3method(multi_SPARKX,default)
-S3method(refinecluster,SpatialExperiment)
+S3method(multi_SPARKX,SpatialExperiment)
 # S3method(multi_SPARKX,Seurat)
 # S3method(multi_SPARKX,giotto)
 
