@@ -469,19 +469,20 @@ add_branch = function(dd){
 
 
 
+
 KODAMA.matrix.parallel =
   function (data,                       # Dataset
             spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
             samples = NULL, 
             M = 100, Tcycle = 20, 
             FUN = c("PLS","PK","KNN"), 
-            f.par.knn = 5, f.par.pls = 5,
+            f.par.knn = 5, f.par.pls = 50,
             W = NULL, 
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
             splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
   {
     set.seed(seed)
-    neighbors = min(c(landmarks, nrow(data)-1),1000) 
+    neighbors = min(c(landmarks, nrow(data)-1),500) 
     if (sum(is.na(data)) > 0) {
       stop("Missing values are present")
     } 
@@ -494,12 +495,23 @@ KODAMA.matrix.parallel =
       spatial_flag = FALSE
     }  else {
       spatial_flag = TRUE
-      snr=sqrt(nsample)
-      aa=apply(spatial,2,function(x) dist(range(x))/snr)
-
+      
+      
+      
+      writeLines("Calculating Network")
+      knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
+      knn_Armadillo$distances = knn_Armadillo$distances[, -1]
+      knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
+      
+      
+      writeLines("\nCalculating Network spatial")
+      knn_Armadillo_spatial = knn_Armadillo(spatial, spatial, neighbors )
+      
+      aa=colMeans(abs(spatial[knn_Armadillo_spatial$nn_index[,1],]-spatial[knn_Armadillo_spatial$nn_index[,20],]))*2
+      
       # A horizontalization of the spatial information is done
       # Each different sample will be placed side by side
-               
+      
       if(!is.null(samples)){
         samples_names=names(table(samples))          
         if(length(samples_names)>1){
@@ -512,6 +524,8 @@ KODAMA.matrix.parallel =
           }
         }
       }
+      ##  aa=sqrt(apply(spatial,2,function(x) dist(range(x))))
+      
     }
     if (is.null(fix)) 
       fix = rep(FALSE, nsample)
@@ -530,7 +544,7 @@ KODAMA.matrix.parallel =
     } else{
       simm_dissimilarity_matrix=FALSE
     }
-
+    
     nspatialclusters=round(landmarks*spatial.resolution)
     
     QC=quality_control(data_row = nsample,
@@ -546,8 +560,8 @@ KODAMA.matrix.parallel =
     
     
     
-#    res = matrix(nrow = M, ncol = nsample)
-#    res_constrain = matrix(nrow = M, ncol = nsample)
+    res = matrix(nrow = M, ncol = nsample)
+    res_constrain = matrix(nrow = M, ncol = nsample)
     
     vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
     accu = NULL
@@ -569,14 +583,13 @@ KODAMA.matrix.parallel =
     pb <- txtProgressBar(min = 1, max = M, style = 1)
     
     
-    res <- big.matrix(M, nsample, type = "double", backingfile = "big_matrix.bin.res", descriptorfile = "big_matrix.desc.res")
-    res_constrain <- big.matrix(M, nsample, type = "double", backingfile = "big_matrix.bin.res_constrain", descriptorfile = "big_matrix.desc.res_constrain")
+    
     
     
     
     res_parallel <- foreach(k = 1:M, 
                             .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
-                            .packages = c('bigmemory','KODAMA')) %dopar%
+                            .packages = c('KODAMA')) %dopar%
       {
         
         set.seed(seed+k)
@@ -609,13 +622,7 @@ KODAMA.matrix.parallel =
         
         
         if (spatial_flag) {
-          #    clu=sample(nsample,nspatialclusters)
-          #    spatialclusters=knn_Armadillo(spatial[clu,],spatial,1)$nn_index
-          #    tab = apply(table(spatialclusters, constrain), 2,which.max)
-          #    constrain_clean = tab[as.character(constrain)]
           delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
-          
-          
           spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
           ta_const=table(spatialclusters)
           ta_const=ta_const[ta_const>1]
@@ -623,19 +630,20 @@ KODAMA.matrix.parallel =
           if(sum(!sel_cluster_1)>0){
             spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Armadillo(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$nn_index]
           }        
-
-                                         
-    #######      tab = apply(table(spatialclusters, constrain), 2,which.max)
-    #######      constrain_clean = tab[as.character(constrain)]
-    ####### Does not work for big number
-
-            constrain_clean=NULL
-         for(ic in 1:max(constrain)){
-           constrain_clean[ic==constrain]=as.numeric(names(which.max(table(spatialclusters[ic==constrain]))))
-         }
-
-
-
+          
+          
+          #######      tab = apply(table(spatialclusters, constrain), 2,which.max)
+          #######      constrain_clean = tab[as.character(constrain)]
+          #######     Does not work for big number
+          
+          constrain_clean=NULL
+          for(ic in 1:max(constrain)){
+            sel_ic=ic==constrain
+            constrain_clean[sel_ic]=as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
+          }
+          
+          
+          
           
         }else{
           constrain_clean=constrain
@@ -648,29 +656,29 @@ KODAMA.matrix.parallel =
           unw = unw[-which(is.na(unw))]
           ghg = is.na(SV_startingvector)
           SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
-            
+          
           #################  tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
           ################   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-         XW=NULL
-         for(ic in 1:max(Xconstrain)){
-           XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
-         }
-
-            
+          XW=NULL
+          for(ic in 1:max(Xconstrain)){
+            XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
+          }
+          
+          
         }else{
           if (landmarks<200) {
             XW = Xconstrain
           } else {
             clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-         #############   tab = apply(table(clust, Xconstrain), 2, which.max)
-         #############   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
-
-         XW=NULL
-         for(ic in 1:max(Xconstrain)){
-           XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
-         }
-
-              
+            #############   tab = apply(table(clust, Xconstrain), 2, which.max)
+            #############   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
+            
+            XW=NULL
+            for(ic in 1:max(Xconstrain)){
+              XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
+            }
+            
+            
           }
         }
         
@@ -704,40 +712,34 @@ KODAMA.matrix.parallel =
           res_k[-landpoints] = yatta$vect_proj
           
           
-  ###########        tab = apply(table(res_k, constrain_clean), 2, which.max)
-  ###########        res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
+          ###########        tab = apply(table(res_k, constrain_clean), 2, which.max)
+          ###########        res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
           
-         res_k_temp=NULL
-         for(ic in 1:max(constrain_clean)){
-           res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
-         }
-         res_k=res_k_temp 
+          res_k_temp=NULL
+          for(ic in 1:max(constrain_clean)){
+            res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
+          }
+          res_k=res_k_temp 
           
           
         }
         
         
-        res <- attach.big.matrix("big_matrix.desc.res")  # Attach the big.matrix in the worker
-        res_constrain <- attach.big.matrix("big_matrix.desc.res_constrain")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
         
-        res[k, ] <- res_k  # Store the result in the big.matrix
-        res_constrain[k, ] <- constrain_clean  # Store the result in the big.matrix
-        
-        NULL  # Return NULL to avoid accumulating results in memory
+        list(res_k=res_k,constrain_k=constrain_clean)
       }
     
     writeLines("\nFinished parallel computation")
-
+    
     close(pb)
+    for(k in 1:M){
+      res[k,] = res_parallel[[k]]$res_k
+      res_constrain[k,]=res_parallel[[k]]$constrain_k
+    }
     
     
-    ######## knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
-    ######## knn_Armadillo$distances = knn_Armadillo$distances[, -1]
-    ######## knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
     
     
-    KKnn_index <- big.matrix(nsample,neighbors, type = "double", backingfile = "big_matrix.bin.KKnn_index", descriptorfile = "big_matrix.desc.KKnn_index")
-    KKdistances <- big.matrix(nsample, neighbors, type = "double", backingfile = "big_matrix.bin.KKdistances", descriptorfile = "big_matrix.desc.KKdistances")
     
     
     print("Calculation of dissimilarity matrix...")
@@ -747,25 +749,17 @@ KODAMA.matrix.parallel =
     
     res_parallel <- foreach(k = 1:nrow(data), 
                             .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
-                            .packages = c('bigmemory','KODAMA')) %dopar%
+                            .packages = c('KODAMA')) %dopar%
       {
         
-        res <- attach.big.matrix("big_matrix.desc.res")  # Attach the big.matrix in the worker
-        res_constrain <- attach.big.matrix("big_matrix.desc.res_constrain")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
-
-        KKnn_index <- attach.big.matrix("big_matrix.desc.KKnn_index")  # Attach the big.matrix in the worker
-        KKdistances <- attach.big.matrix("big_matrix.desc.KKdistances")  # Attach the big.matrix in the worker <- attach.big.matrix(desc_path)  # Attach the big.matrix in the worker
         
         
         
-    
-        ########### knn_nn_index=knn_Armadillo$nn_index[k,]
-        ########### knn_distances=knn_Armadillo$distances[k,]
+        knn_nn_index=knn_Armadillo$nn_index[k,]
+        knn_distances=knn_Armadillo$distances[k,]
         
-        knn_Armadillo = knn_Armadillo(data,data[k,,drop=FALSE], neighbors + 1)
-        knn_distances = knn_Armadillo$distances[, -1]
-        knn_nn_index = knn_Armadillo$nn_index[, -1]  
-          
+        
+        
         mean_knn_distances=mean(knn_distances)                             
         for (j_tsne in 1:neighbors) {
           
@@ -779,30 +773,20 @@ KODAMA.matrix.parallel =
         knn_distances = knn_distances[oo_tsne]
         knn_nn_index = knn_nn_index[oo_tsne]
         
-        KKnn_index[k, ] = knn_nn_index
-        KKdistances[k, ] = knn_distances
-          
-    #    list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
-     NULL   
+        list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
       }
     
     parallel::stopCluster(cl = my.cluster)
     
-    knn_Armadillo=list()
-    knn_Armadillo$nn_index=KKnn_index
-    knn_Armadillo$distances=KKdistances
-                                                                
-                            
-   # for(k in 1:nrow(data)){
+    
+    for(k in 1:nrow(data)){
       
-   #   knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
-   #   knn_Armadillo$distances[k,] =res_parallel[[k]]$knn_distances
+      knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
+      knn_Armadillo$distances[k,] =res_parallel[[k]]$knn_distances
       
-  #  }
+    }
+    
     close(pb)
-    
-    
-    
     
     
     knn_Armadillo$neighbors = neighbors
@@ -816,6 +800,9 @@ KODAMA.matrix.parallel =
 
 
 
+
+
+                     
 
 
                                                  
@@ -1035,6 +1022,32 @@ multi_SPARKX.SpatialExperiment = function(object, ...) {
 
 
 
+
+plot_slide = function(xy,slide,labels,col=NULL){
+  if(is.null(col)){
+    labels=as.factor(labels)
+    nn=length(levels(labels))
+    col=rainbow(nn)
+  }
+  df <- data.frame(xy, slide,labels)
+  colnames(df)=c("x","y","slide","labels")
+  df$slide=as.factor(df$slide)
+  df$labels=as.factor(df$labels)
+  ggplot(df, aes(x, y, color = labels)) +
+    geom_point(size = 1) +
+    facet_grid(~slide) +
+    theme_bw() +
+    theme(
+      legend.position = "bottom",
+      axis.title = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid = element_blank())+
+    
+    scale_color_manual("Domain", values = col) +
+    guides(color = guide_legend(nrow = 1, 
+                                override.aes = list(size = 2)))
+}
 
 
                             
