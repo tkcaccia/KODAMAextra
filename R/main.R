@@ -482,7 +482,7 @@ KODAMA.matrix.parallel =
             f.par.knn = 5, f.par.pls = 50,
             W = NULL, 
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-            splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
+            splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234,aa_noise=2) 
   {
     set.seed(seed)
     neighbors = min(c(landmarks, nrow(data)-1),500) 
@@ -510,7 +510,7 @@ KODAMA.matrix.parallel =
       writeLines("\nCalculating Network spatial")
       knn_Armadillo_spatial = knn_Armadillo(spatial, spatial, neighbors )
       
-      aa=colMeans(abs(spatial[knn_Armadillo_spatial$nn_index[,1],]-spatial[knn_Armadillo_spatial$nn_index[,20],]))*2
+      aa=colMeans(abs(spatial[knn_Armadillo_spatial$nn_index[,1],]-spatial[knn_Armadillo_spatial$nn_index[,20],]))*aa_noise
       
       # A horizontalization of the spatial information is done
       # Each different sample will be placed side by side
