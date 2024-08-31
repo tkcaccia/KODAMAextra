@@ -3,7 +3,6 @@
 
 
 # Import all packages listed as Imports or Depends
-#import("stats","Rcpp")
 #exportPattern("^[[:alpha:]]+")
 
 
