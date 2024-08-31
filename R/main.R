@@ -11,6 +11,9 @@ refinecluster <- function(...) {
     UseMethod("refinecluster")
 }
 
+multi_SPARKX <- function(...) {
+    UseMethod("multi_SPARKX")
+}
 
 RunKODAMAmatrix.default = function(data, ...) {
   kk=KODAMA.matrix.parallel(data = data, ...)
