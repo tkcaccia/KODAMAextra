@@ -944,7 +944,7 @@ passing.message =
 
 
 
-multi_SPARKX = function (data,spatial,samples=NULL,n.cores=1){
+multi_SPARKX.default = function (data,spatial,samples=NULL,n.cores=1){
   nsamples=nrow(data)
   nfeatures=ncol(data)
   
@@ -974,10 +974,6 @@ multi_SPARKX = function (data,spatial,samples=NULL,n.cores=1){
 
 
 
-multi_SPARKX.default = function(data, ...) {
-  kk=multi_SPARKX(data = data, ...)
-  return(kk)
-}
 
 
 multi_SPARKX.SpatialExperiment = function(object, ...) {
@@ -988,7 +984,7 @@ multi_SPARKX.SpatialExperiment = function(object, ...) {
   data=as.matrix(t(logcounts(object)))
   spatial=as.matrix(spatialCoords(object))
   samples=as.factor(colData(object)$sample_id)
-  top=multi_SPARKX(data,spatial,samples)
+  top=multi_SPARKX.default(data,spatial,samples)
   return(top)
 }
 
