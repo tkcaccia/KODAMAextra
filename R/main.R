@@ -983,14 +983,13 @@ multi_SPARKX.SpatialExperiment = function(object, ...) {
   if (!is(object, "SpatialExperiment")) {
     stop("object is not a spatialExperiment object")
   }
-  
-  data=as.matrix(t(logcounts(object)))
+  data.2=as.matrix(logcounts(object))
+  data=t(data.2)
   spatial=as.matrix(spatialCoords(object))
   samples=as.factor(colData(object)$sample_id)
-  top=multi_SPARKX.default(data,spatial,samples)
+  top=multi_SPARKX(data,spatial,samples)
   return(top)
 }
-
 
 
 
