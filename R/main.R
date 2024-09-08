@@ -331,34 +331,150 @@ refinecluster.giotto = function (object,name, shape = "square"){
 }
     
 
-refine_SVM =
-function (xy, labels, samples=NULL, ...) 
-{
-  if(is.null(samples)){
-    samples=rep(1,length(labels))
-  }
-  samples = as.factor(samples)
-  labels = as.factor(labels)
-  sa = levels(samples)
-  refine = rep(NA, length(labels))
-  for (s in sa) {
-    print(s)
-    sel = samples == s
-    xr = xy[sel, ]
-    yr <- as.factor(as.vector(labels[sel]))
-    if (length(levels(yr)) > 1) {
-      model <- svm(x = xr, y = yr, ...)
-      refine[sel] <- as.vector(fitted(model))
-    }
-    else {
-      refine[sel] <- yr
-    }
-  }
-  refine = factor(refine, levels = levels(labels))
-  refine
-}
+#refine_SVM =
+#function (xy, labels, samples=NULL, ...) 
+#{
+#  if(is.null(samples)){
+#    samples=rep(1,length(labels))
+#  }
+#  samples = as.factor(samples)
+#  labels = as.factor(labels)
+#  sa = levels(samples)
+#  refine = rep(NA, length(labels))
+#  for (s in sa) {
+#    print(s)
+#    sel = samples == s
+#    xr = xy[sel, ]
+#    yr <- as.factor(as.vector(labels[sel]))
+#    if (length(levels(yr)) > 1) {
+#      model <- svm(x = xr, y = yr, ...)
+#      refine[sel] <- as.vector(fitted(model))
+#    }
+#    else {
+#      refine[sel] <- yr
+#    }
+#  }
+#  refine = factor(refine, levels = levels(labels))
+#  refine
+#}
 
-
+  
+  refine_SVM =
+    function (xy, labels, samples = NULL, newdata=NULL,tiles=NULL, ...) 
+    {
+      nam=rownames(xy)
+      names(labels)=nam
+      dimensions=length(dim(xy))
+      if(!is.null(tiles)){
+        ex=list()
+        for(k in 1:dimensions){
+          ex=c(ex,list(1:tiles[k]))
+        }
+        grid_tiles=expand.grid(ex)
+      }
+      if (is.null(samples)) {
+        samples = rep(1, length(labels))
+      }
+      samples = as.factor(samples)
+      labels = as.factor(labels)
+      sa = levels(samples)
+      
+      if(is.null(newdata)){
+        refine = rep(NA, length(labels))
+        names(refine) = rownames(xy)
+      }else{
+        refine = rep(NA, nrow(newdata))
+        
+        names(refine) = rownames(newdata)
+      }
+      
+      for (s in sa) {
+        print(s)
+        sel = samples == s
+        xr = xy[sel, ]
+        yr <- as.factor(as.vector(labels[sel]))
+        names(yr)=names(labels[sel])
+        if(!is.null(tiles)){
+          ll_tiles=list()
+          for(ii in 1:dimensions){
+            vect=xr[,ii]
+            mi=min(vect)
+            ma=max(vect)
+            delta=(ma-mi)/tiles[ii]
+            low= mi+(0:(tiles[ii]-1))*delta
+            high= mi+(1:tiles[ii])*delta
+            high[tiles[ii]]=high[tiles[ii]]+0.1
+            ll_tiles[[ii]]=list()
+            ll_tiles[[ii]]$low=low
+            ll_tiles[[ii]]$high=high
+            
+          }       
+          if(dimensions==2){
+            for(jj in 1:nrow(grid_tiles)){
+              xr_x=xr[,1]
+              xr_y=xr[,2]
+              sel_x=ll_tiles[[1]]$low[grid_tiles[jj,1]]<xr_x & xr_x<ll_tiles[[1]]$high[grid_tiles[jj,1]]
+              sel_y=ll_tiles[[2]]$low[grid_tiles[jj,2]]<xr_y & xr_y<ll_tiles[[2]]$high[grid_tiles[jj,2]]
+              xr_tiles=xr[sel_x & sel_y,]
+              sel_name=rownames(xr_tiles)
+              
+              ### newdata per samplpes
+              if(!is.null(newdata)){
+                newdata_x=newdata[,1]
+                newdata_y=newdata[,2]
+                
+                sel_newdata_x=ll_tiles[[1]]$low[grid_tiles[jj,1]]<newdata_x & newdata_x<ll_tiles[[1]]$high[grid_tiles[jj,1]]
+                sel_newdata_y=ll_tiles[[2]]$low[grid_tiles[jj,2]]<newdata_y & newdata_y<ll_tiles[[2]]$high[grid_tiles[jj,2]]
+                xr_newdata_tiles=newdata[sel_newdata_x & sel_newdata_y,]
+                sel_name_newdata=rownames(xr_newdata_tiles)
+                
+              }
+              
+              yr_tiles=yr[sel_name]
+              
+              if (length(levels(yr_tiles)) > 1) {
+                model <- svm(x = xr_tiles, y = yr_tiles, ...)
+                if(is.null(newdata)){
+                  
+                  refine[sel_name] <- as.vector(fitted(model))
+                }else{
+                  refine[sel_name_newdata] <- as.vector(predict(model,newdata = xr_newdata_tiles))
+                }
+              }
+              else {
+                if(is.null(newdata)){
+                  
+                  refine[sel_name] <- yr_tiles
+                }else{
+                  refine[sel_name_newdata] <- unique(yr_tiles)
+                }
+                
+              }
+            }
+            
+          }
+          
+        }else{
+          
+          
+          
+          if (length(levels(yr)) > 1) {
+            model <- svm(x = xr, y = yr, ...)
+            if(is.null(newdata)){
+              refine[sel] <- as.vector(fitted(model))
+            }else{
+              refine[sel] <- as.vector(predict(model,newdata = newdata))
+            }
+          }
+          else {
+            refine[sel] <- yr
+          }
+        }
+      }
+      refine = factor(refine, levels = levels(labels))
+      refine
+    }
+  
 
 
 new_trajectory =
