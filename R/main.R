@@ -1059,54 +1059,53 @@ passing.message =
 
 
 
-
-
-
-
-multi_SPARKX.default = function (data,spatial,samples=NULL,n.cores=1){
-  nsamples=nrow(data)
-  nfeatures=ncol(data)
-  
-  if(is.null(samples)){
-    samples=as.factor(rep("",nrow(data)))
+  multi_SPARKX.default = function (data,spatial,samples=NULL,n.cores=1){
+    nsamples=nrow(data)
+    nfeatures=ncol(data)
+    
+    if(is.null(samples)){
+      samples=as.factor(rep("",nrow(data)))
+    }
+    sample_names=levels(samples)
+    
+    pvalue_mat=matrix(nrow=nfeatures,ncol=length(sample_names))
+    rownames(pvalue_mat)=colnames(data)
+    
+    for(i in 1:length(sample_names)){
+      sel=samples==sample_names[i]
+      data_sub= data[sel,]
+      spatial_sub= spatial[sel,]
+      options(warn=-1)
+      sparkX <- sparkx(t(data_sub),spatial_sub,numCores=n.cores,option="mixture")
+      options(warn=0)
+      pvalue_mat[rownames(sparkX$res_mtest),i]=sparkX$res_mtest$combinedPval
+      print(sample_names[i])
+    }
+    pvalue_mat=-log(pvalue_mat)
+    zeros=apply(data,2,function(y) any(tapply(y,samples,function(x) all(x==0))))
+    pvalue_mat[zeros,]=0
+    #  oo=order(apply(pvalue_mat,1,function(x) median(-log(x),na.rm=TRUE)),decreasing = TRUE)
+    oo=order(apply(pvalue_mat,1,function(x) max(x,na.rm=TRUE)),decreasing = TRUE)
+    top=rownames(pvalue_mat)[oo]
+    top
   }
-  sample_names=levels(samples)
   
-  pvalue_mat=matrix(nrow=nfeatures,ncol=length(sample_names))
-  rownames(pvalue_mat)=colnames(data)
   
-  for(i in 1:length(sample_names)){
-    sel=samples==sample_names[i]
-    data_sub= data[sel,]
-    spatial_sub= spatial[sel,]
-    options(warn=-1)
-    sparkX <- sparkx(t(data_sub),spatial_sub,numCores=n.cores,option="mixture")
-    options(warn=0)
-    pvalue_mat[rownames(sparkX$res_mtest),i]=sparkX$res_mtest$combinedPval
-    print(sample_names[i])
+  
+  
+  
+  multi_SPARKX.SpatialExperiment = function(object, ...) {
+    if (!is(object, "SpatialExperiment")) {
+      stop("object is not a spatialExperiment object")
+    }
+    data.2=as.matrix(logcounts(object))
+    data=t(data.2)
+    spatial=as.matrix(spatialCoords(object))
+    samples=as.factor(colData(object)$sample_id)
+    top=multi_SPARKX(data,spatial,samples)
+    return(top)
   }
   
-  oo=order(apply(pvalue_mat,1,function(x) median(-log(x),na.rm=TRUE)),decreasing = TRUE)
-  top=rownames(pvalue_mat)[oo]
-  top
-}
-
-
-
-
-
-multi_SPARKX.SpatialExperiment = function(object, ...) {
-  if (!is(object, "SpatialExperiment")) {
-    stop("object is not a spatialExperiment object")
-  }
-  data.2=as.matrix(logcounts(object))
-  data=t(data.2)
-  spatial=as.matrix(spatialCoords(object))
-  samples=as.factor(colData(object)$sample_id)
-  top=multi_SPARKX(data,spatial,samples)
-  return(top)
-}
-
 
 
 
