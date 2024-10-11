@@ -1137,6 +1137,35 @@ plot_slide = function(xy,slide,labels,col=NULL){
 }
 
 
+
+
+
+                   
+ 
+
+Lscore = function(data,l,knn=10){
+  require(Rfast)
+  score=NULL
+  for(j in 1:7){
+    uni=unique(l)
+    sel=l==uni[j]
+    data.sel=data[sel,]
+    l.sel=l[sel]
+    nr=nrow(data.sel)
+    if(nr>knn){
+    dod=matrix(NA,ncol=nr,nrow=nr)
+    di=knn_Armadillo(data.sel,data.sel,1+knn)
+    for(i in 1:nr){
+      dod[i,di$nn_index[i,]]=di$distances[i,]
+    }
+    ff=Rfast::floyd(dod)
+     score[j]=max(ff,na.rm = TRUE)/sqrt((dist(range(data.sel[,1]))*dist(range(data.sel[,2]))))
+  #  score[j]=max(ff,na.rm = TRUE)/nr
+    }
+  }
+  score
+
+}
                             
 
 
