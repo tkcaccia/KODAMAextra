@@ -1110,33 +1110,24 @@ passing.message =
 
 
 
-plot_slide = function(xy,slide,labels,col=NULL){
-  if(is.null(col)){
-    labels=as.factor(labels)
-    nn=length(levels(labels))
-    col=rainbow(nn)
+plot_slide = function (xy, slide, labels, col = NULL,nrow=nrow) 
+{
+  if (is.null(col)) {
+    labels = as.factor(labels)
+    nn = length(levels(labels))
+    col = rainbow(nn)
   }
-  df <- data.frame(xy, slide,labels)
-  colnames(df)=c("x","y","slide","labels")
-  df$slide=as.factor(df$slide)
-  df$labels=as.factor(df$labels)
-  ggplot(df, aes(x, y, color = labels)) +
-    geom_point(size = 1) +
-    facet_grid(~slide) +
-    theme_bw() +
-    theme(
-      legend.position = "bottom",
-      axis.title = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      panel.grid = element_blank())+
-    
-    scale_color_manual("Domain", values = col) +
-    guides(color = guide_legend(nrow = 1, 
-                                override.aes = list(size = 2)))
+  df <- data.frame(xy, slide, labels)
+  colnames(df) = c("x", "y", "slide", "labels")
+  df$slide = as.factor(df$slide)
+  df$labels = as.factor(df$labels)
+  ggplot(df, aes(x, y, color = labels)) + geom_point(size = 1) + 
+    facet_wrap(~slide,nrow=nrow) + theme_bw() + theme(legend.position = "bottom", 
+                                            axis.title = element_blank(), axis.text = element_blank(), 
+                                            axis.ticks = element_blank(), panel.grid = element_blank()) + 
+    scale_color_manual("Domain", values = col) + guides(color = guide_legend(nrow = 1, 
+                                                                             override.aes = list(size = 2)))
 }
-
-
 
 
 
