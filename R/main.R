@@ -1160,3 +1160,81 @@ Lscore = function(data,l,knn=10){
                             
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#     library(ggplot2)
+#     library(sf)
+#     library(dplyr)
+
+# Sample data for scatter plot
+#     set.seed(123)
+#     x <- rnorm(500)*100+6000
+#     y <- rnorm(500)*100+6000
+
+# Create a data frame from the scatter plot data
+#     data <- data.frame(x = x, y = y)
+
+# Create a base scatter plot with contours using ggplot2
+#     ggplot(data, aes(x = x, y = y)) +
+#       geom_point() +
+#       stat_density_2d(aes(fill = ..level..), geom = "polygon") +
+#       geom_density_2d()
+
+#     density_est <- MASS::kde2d(x, y, n = 100)
+
+#     contours <- contourLines(density_est$x, density_est$y, density_est$z)
+#     contours=list(contours[[1]])
+
+# Convert the contours to sf LINESTRING objects
+#     sf_contours <- lapply(contours, function(contour) {
+#       st_linestring(cbind(contour$x, contour$y))
+#     })
+
+# Combine all linestrings into an sf object
+#     sf_contours <- st_sfc(sf_contours)
+
+#     layer_name <- "Necrosis"
+#     layer_color <- list(c(50, 50, 50))  # RGB color
+
+# Create a simple feature (sf) object with attributes
+#     sf_contours <- st_sf(
+#       level = sapply(contours, `[[`, "level"),
+#       geometry = sf_contours,
+#       classification = "{\"name\":\"Necrosis\",\"color\":[50, 50, 50]}"    
+#     )
+
+# Optionally, add some attribute data (like the contour level)
+#     sf_contours <- st_sf(level = sapply(contours, `[[`, "level"), geometry = sf_contours)
+
+# Save the contour lines as a GeoJSON file
+#     st_write(sf_contours, "contour_plot4.geojson", driver = "GeoJSON",delete_dsn=TRUE) #append=TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   
+
