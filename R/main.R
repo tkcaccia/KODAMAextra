@@ -609,20 +609,19 @@ KODAMA.matrix.parallel =
     nsample = nrow(data)
     nvariable = ncol(data)
     nsample_spatial= nrow(spatial)
+
+
+    writeLines("Calculating Network")
+    knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
+    knn_Armadillo$distances = knn_Armadillo$distances[, -1]
+    knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]  
     
     if (is.null(spatial)) {
       spatial_flag = FALSE
     }  else {
       spatial_flag = TRUE
       
-      
-      
-      writeLines("Calculating Network")
-      knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
-      knn_Armadillo$distances = knn_Armadillo$distances[, -1]
-      knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]
-      
-      
+        
       writeLines("\nCalculating Network spatial")
       knn_Armadillo_spatial = knn_Armadillo(spatial, spatial, neighbors )
       
