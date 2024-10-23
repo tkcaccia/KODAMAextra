@@ -1109,7 +1109,9 @@ passing.message =
 
 
 
-plot_slide = function (xy, slide, labels, col = NULL,nrow=nrow) 
+
+plot_slide = 
+function (xy, slide, labels, col = NULL, nrow = nrow,scales = "free") 
 {
   if (is.null(col)) {
     labels = as.factor(labels)
@@ -1121,12 +1123,13 @@ plot_slide = function (xy, slide, labels, col = NULL,nrow=nrow)
   df$slide = as.factor(df$slide)
   df$labels = as.factor(df$labels)
   ggplot(df, aes(x, y, color = labels)) + geom_point(size = 1) + 
-    facet_wrap(~slide,nrow=nrow) + theme_bw() + theme(legend.position = "bottom", 
-                                            axis.title = element_blank(), axis.text = element_blank(), 
-                                            axis.ticks = element_blank(), panel.grid = element_blank()) + 
+    facet_wrap(~slide, nrow = nrow,scales = scales) + theme_bw() + theme(legend.position = "bottom", 
+                                                         axis.title = element_blank(), axis.text = element_blank(), 
+                                                         axis.ticks = element_blank(), panel.grid = element_blank()) + 
     scale_color_manual("Domain", values = col) + guides(color = guide_legend(nrow = 1, 
                                                                              override.aes = list(size = 2)))
 }
+
 
 
 
