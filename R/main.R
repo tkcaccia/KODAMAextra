@@ -596,7 +596,7 @@ KODAMA.matrix.parallel =
             M = 100, Tcycle = 20, 
             FUN = c("PLS","PK","KNN"), 
             f.par.knn = 5, f.par.pls = 50,
-            W = NULL, 
+            W = NULL, distance_method="Euclidean",
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
             splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
   {
@@ -612,10 +612,29 @@ KODAMA.matrix.parallel =
 
 
     writeLines("Calculating Network")
-    knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
-    knn_Armadillo$distances = knn_Armadillo$distances[, -1]
-    knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]  
-    
+    if(distance_method="Euclidean"){
+      knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
+      knn_Armadillo$distances = knn_Armadillo$distances[, -1]
+      knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]  
+    }
+    if(distance_method="cosine"){
+      knn_Armadillo = list()
+      knn_Armadillo$nn_index=matrix(nrow=nsample,ncol=neighbors)
+      knn_Armadillo$distances=matrix(nrow=nsample,ncol=neighbors)
+      for(ic in 1:nsample){
+        v=NULL
+        xc=data[ic,]
+        for(jc in 1:nsample){
+          yc=data[jc,]
+          v[jc]=1-as.numeric(crossprod(xc, yc)/sqrt(crossprod(xc) * crossprod(yc)))
+        }    
+        tt=  order(v)[2:(neighbors+1)]  
+        knn_Armadillo$nn_index[ic,] = tt
+        knn_Armadillo$distances[ic,] = v[tt]
+      }
+    }
+      
+        
     if (is.null(spatial)) {
       spatial_flag = FALSE
     }  else {
