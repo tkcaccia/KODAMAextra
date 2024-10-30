@@ -612,12 +612,12 @@ KODAMA.matrix.parallel =
 
 
     writeLines("Calculating Network")
-    if(distance_method="Euclidean"){
+    if(distance_method=="Euclidean"){
       knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
       knn_Armadillo$distances = knn_Armadillo$distances[, -1]
       knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]  
     }
-    if(distance_method="cosine"){
+    if(distance_method=="cosine"){
       knn_Armadillo = list()
       knn_Armadillo$nn_index=matrix(nrow=nsample,ncol=neighbors)
       knn_Armadillo$distances=matrix(nrow=nsample,ncol=neighbors)
