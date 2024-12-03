@@ -594,7 +594,7 @@ KODAMA.matrix.parallel =
             samples = NULL, 
             M = 100, Tcycle = 20, 
             FUN = c("PLS","PK","KNN"), 
-            f.par.knn = 5, f.par.pls = 50,
+            f.par.pls = 50,
             W = NULL, metrics="euclidean",
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
             splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
@@ -657,7 +657,7 @@ KODAMA.matrix.parallel =
       constrain=as.numeric(as.factor(constrain))
       constrain[is.na.constrain]=max(constrain,na.rm = TRUE)+(1:length(constrain[is.na.constrain]))
     }
-    shake = FALSE
+ 
     
     if(nsample<=landmarks){
       landmarks=ceiling(nsample*0.75)
@@ -673,7 +673,6 @@ KODAMA.matrix.parallel =
                        spatial_row = nsample_spatial,
                        FUN = FUN,
                        data = data,
-                       f.par.knn = f.par.knn,
                        f.par.pls = f.par.pls)
     matchFUN=QC$matchFUN
     
@@ -810,8 +809,8 @@ KODAMA.matrix.parallel =
         attr(yatta, "class") = "try-error"
         while (!is.null(attr(yatta, "class"))) {
           yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
-                               f.par.knn,f.par.pls,
-                               Xconstrain, Xfix, shake), silent = FALSE)
+                               f.par.pls,
+                               Xconstrain, Xfix, FALSE), silent = FALSE)
           
         }
         options(warn = 0)
