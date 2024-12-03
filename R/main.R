@@ -748,7 +748,7 @@ KODAMA.matrix.parallel =
           ta_const=ta_const[ta_const>1]
           sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
           if(sum(!sel_cluster_1)>0){
-            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Rnanoflann(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
+            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][Rnanoflann:nn(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
           }        
           
           
@@ -1027,7 +1027,7 @@ passing.message =
       # Initialize a temporary vector for computations
       temp = rep(0, nvariables)
       RNA.temp = data[knn$indices[h,], ]
-      knn_gene = knn_Rnanoflann(RNA.temp, RNA.temp[1, , drop = FALSE], round(number_knn * quantile))$indices
+      knn_gene = Rnanoflann::nn(RNA.temp, RNA.temp[1, , drop = FALSE], round(number_knn * quantile))$indices
 
       # Compute weighted sum for each variable
       for (i in 1:number_knn) {
@@ -1149,7 +1149,7 @@ Lscore = function(data,l,knn=10){
     nr=nrow(data.sel)
     if(nr>knn){
     dod=matrix(NA,ncol=nr,nrow=nr)
-    di=knn_Rnanoflann(data.sel,data.sel,1+knn)
+    di=Rnanoflann::nn(data.sel,data.sel,1+knn)
     for(i in 1:nr){
       dod[i,di$indices[i,]]=di$distances[i,]
     }
