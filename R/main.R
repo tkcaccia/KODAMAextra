@@ -593,13 +593,14 @@ KODAMA.matrix.parallel =
             spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
             samples = NULL, 
             M = 100, Tcycle = 20, 
-            FUN = c("PLS","PK","KNN"), 
-            f.par.pls = 50,
+            FUN = c("fastpls","simpls"), 
+            ncomp = 50,
             W = NULL, metrics="euclidean",
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
             splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
   {
     set.seed(seed)
+    f.par.pls = ncomp
     neighbors = min(c(landmarks, nrow(data)-1),500) 
     if (sum(is.na(data)) > 0) {
       stop("Missing values are present")
