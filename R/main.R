@@ -748,7 +748,7 @@ KODAMA.matrix.parallel =
           ta_const=ta_const[ta_const>1]
           sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
           if(sum(!sel_cluster_1)>0){
-            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][Rnanoflann:nn(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
+            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][Rnanoflann::nn(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
           }        
           
           
