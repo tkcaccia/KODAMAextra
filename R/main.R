@@ -512,8 +512,7 @@ function (input, plotting = FALSE, n = 20, data = NULL, draw = TRUE,
                                      new_y[((-1):0) + i]))
     }
     section = seq(0, di[length(new_x)], length.out = n)
-    temp = knn_Armadillo(as.matrix(di), as.matrix(section), 
-                         1)$nn_index
+    temp = Rnanoflann::nn(as.matrix(di), as.matrix(section),1)$indices
     dd$x = new_x[temp]
     dd$y = new_y[temp]
   }  else {
@@ -524,7 +523,7 @@ function (input, plotting = FALSE, n = 20, data = NULL, draw = TRUE,
     xspline(dd, lwd = 3, border = "red")
   }
   xy = cbind(dd$x, dd$y)
-  kk = knn_Armadillo(input, as.matrix(xy), knn)$nn_index
+  kk = Rnanoflann::nn(input, as.matrix(xy), knn)$indices
   if (!is.null(data)) {
     trajectory = t(apply(kk, 1, function(x) colMeans(as.matrix(data)[x, ])))
   }  else {
@@ -579,7 +578,7 @@ add_branch = function(dd){
   xy=cbind(branch$x,branch$y)
   xy_total=cbind(dd$settings$x,dd$settings$y)
   if(!is.null(data)){
-    selection=knn_Armadillo(xy_total,xy,k = dd$settings$knn)$nn_index
+    selection=Rnanoflann::nn(xy_total,xy,k = dd$settings$knn)$indices
     trajectory=apply(selection,1,function(z) apply(data[z,],2,FUN))
   }
   points(branch,col=3,bg="#eeeeee",lwd=2,pch=21)
@@ -596,7 +595,7 @@ KODAMA.matrix.parallel =
             M = 100, Tcycle = 20, 
             FUN = c("PLS","PK","KNN"), 
             f.par.knn = 5, f.par.pls = 50,
-            W = NULL, distance_method="Euclidean",
+            W = NULL, metrics="euclidean",
             constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
             splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
   {
@@ -612,27 +611,12 @@ KODAMA.matrix.parallel =
 
 
     writeLines("Calculating Network")
-    if(distance_method=="Euclidean"){
-      knn_Armadillo = knn_Armadillo(data, data, neighbors + 1)
-      knn_Armadillo$distances = knn_Armadillo$distances[, -1]
-      knn_Armadillo$nn_index = knn_Armadillo$nn_index[, -1]  
-    }
-    if(distance_method=="cosine"){
-      knn_Armadillo = list()
-      knn_Armadillo$nn_index=matrix(nrow=nsample,ncol=neighbors)
-      knn_Armadillo$distances=matrix(nrow=nsample,ncol=neighbors)
-      for(ic in 1:nsample){
-        v=NULL
-        xc=data[ic,]
-        for(jc in 1:nsample){
-          yc=data[jc,]
-          v[jc]=1-as.numeric(crossprod(xc, yc)/sqrt(crossprod(xc) * crossprod(yc)))
-        }    
-        tt=  order(v)[2:(neighbors+1)]  
-        knn_Armadillo$nn_index[ic,] = tt
-        knn_Armadillo$distances[ic,] = v[tt]
-      }
-    }
+    
+    knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1,method=metrics)
+    knn_Rnanoflann$distances = knn_Rnanoflann$distances[, -1]
+    knn_Rnanoflann$indices = knn_Rnanoflann$indices[, -1]  
+
+
       
         
     if (is.null(spatial)) {
@@ -642,9 +626,9 @@ KODAMA.matrix.parallel =
       
         
       writeLines("\nCalculating Network spatial")
-      knn_Armadillo_spatial = knn_Armadillo(spatial, spatial, neighbors )
+      knn_Rnanoflann_spatial = knn_Rnanoflann(spatial, spatial, neighbors,method="euclidean" )
       
-      aa=colMeans(abs(spatial[knn_Armadillo_spatial$nn_index[,1],]-spatial[knn_Armadillo_spatial$nn_index[,20],]))*3
+      aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
       
       # A horizontalization of the spatial information is done
       # Each different sample will be placed side by side
@@ -765,7 +749,7 @@ KODAMA.matrix.parallel =
           ta_const=ta_const[ta_const>1]
           sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
           if(sum(!sel_cluster_1)>0){
-            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Armadillo(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$nn_index]
+            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][knn_Rnanoflann(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
           }        
           
           
@@ -892,15 +876,15 @@ KODAMA.matrix.parallel =
         
         
         
-        knn_nn_index=knn_Armadillo$nn_index[k,]
-        knn_distances=knn_Armadillo$distances[k,]
+        knn_indices=knn_Rnanoflann$indices[k,]
+        knn_distances=knn_Rnanoflann$distances[k,]
         
         
         
         mean_knn_distances=mean(knn_distances)                             
         for (j_tsne in 1:neighbors) {
           
-          kod_tsne = mean(res[, k] == res[, knn_nn_index[j_tsne]], na.rm = TRUE)
+          kod_tsne = mean(res[, k] == res[, knn_indices[j_tsne]], na.rm = TRUE)
           knn_distances[j_tsne] = (1+knn_distances[j_tsne])/(kod_tsne^2)
           
         }
@@ -908,9 +892,9 @@ KODAMA.matrix.parallel =
         
         oo_tsne = order(knn_distances)
         knn_distances = knn_distances[oo_tsne]
-        knn_nn_index = knn_nn_index[oo_tsne]
+        knn_indices = knn_indices[oo_tsne]
         
-        list(knn_distances=knn_distances,knn_nn_index=knn_nn_index)
+        list(knn_distances=knn_distances,knn_indices=knn_indices)
       }
     
     parallel::stopCluster(cl = my.cluster)
@@ -918,18 +902,18 @@ KODAMA.matrix.parallel =
     
     for(k in 1:nrow(data)){
       
-      knn_Armadillo$nn_index[k,]=res_parallel[[k]]$knn_nn_index
-      knn_Armadillo$distances[k,] =res_parallel[[k]]$knn_distances
+      knn_Rnanoflann$indices[k,]=res_parallel[[k]]$knn_indices
+      knn_Rnanoflann$distances[k,] =res_parallel[[k]]$knn_distances
       
     }
     
     close(pb)
     
     
-    knn_Armadillo$neighbors = neighbors
+    knn_Rnanoflann$neighbors = neighbors
     return(list(acc = accu, 
                 v = vect_acc, res = res, 
-                knn_Armadillo = knn_Armadillo, 
+                knn_Rnanoflann = knn_Rnanoflann, 
                 data = data,
                 res_constrain=res_constrain))
     
@@ -1036,15 +1020,15 @@ passing.message =
 
     # Initialize result matrix
     data.2 <- matrix(0, nrow = nspots, ncol = nvariables)
-    knn=knn_Armadillo(spatial,spatial,number_knn)
+    knn=knn_Rnanoflann(spatial,spatial,number_knn)
     for(h in 1:nspots){       
       # Find nearest neighbors using spatial information
       
       
       # Initialize a temporary vector for computations
       temp = rep(0, nvariables)
-      RNA.temp = data[knn$nn_index[h,], ]
-      knn_gene = knn_Armadillo(RNA.temp, RNA.temp[1, , drop = FALSE], round(number_knn * quantile))$nn_index
+      RNA.temp = data[knn$indices[h,], ]
+      knn_gene = knn_Rnanoflann(RNA.temp, RNA.temp[1, , drop = FALSE], round(number_knn * quantile))$indices
 
       # Compute weighted sum for each variable
       for (i in 1:number_knn) {
@@ -1166,9 +1150,9 @@ Lscore = function(data,l,knn=10){
     nr=nrow(data.sel)
     if(nr>knn){
     dod=matrix(NA,ncol=nr,nrow=nr)
-    di=knn_Armadillo(data.sel,data.sel,1+knn)
+    di=knn_Rnanoflann(data.sel,data.sel,1+knn)
     for(i in 1:nr){
-      dod[i,di$nn_index[i,]]=di$distances[i,]
+      dod[i,di$indices[i,]]=di$distances[i,]
     }
     ff=Rfast::floyd(dod)
      score[j]=max(ff,na.rm = TRUE)/sqrt((dist(range(data.sel[,1]))*dist(range(data.sel[,2]))))
