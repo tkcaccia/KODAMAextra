@@ -626,7 +626,7 @@ KODAMA.matrix.parallel =
       
         
       writeLines("\nCalculating Network spatial")
-      knn_Rnanoflann_spatial = knn_Rnanoflann(spatial, spatial, neighbors,method="euclidean" )
+      knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean" )
       
       aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
       
