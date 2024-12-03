@@ -810,7 +810,7 @@ KODAMA.matrix.parallel =
         while (!is.null(attr(yatta, "class"))) {
           yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
                                f.par.pls,
-                               Xconstrain, Xfix, FALSE), silent = FALSE)
+                               Xconstrain, Xfix), silent = FALSE)
           
         }
         options(warn = 0)
