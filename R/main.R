@@ -709,7 +709,7 @@ KODAMA.matrix.parallel =
     
     res_parallel <- foreach(k = 1:M, 
                             .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
-                            .packages = c('KODAMA')) %dopar%
+                            .packages = c('KODAMA','Rnanoflann')) %dopar%
       {
         
         set.seed(seed+k)
@@ -761,10 +761,7 @@ KODAMA.matrix.parallel =
             sel_ic=ic==constrain
             constrain_clean[sel_ic]=as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
           }
-          
-          
-          
-          
+              
         }else{
           constrain_clean=constrain
           
