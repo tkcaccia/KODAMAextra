@@ -1110,7 +1110,7 @@ passing.message =
 
 
 plot_slide = 
-function (xy, slide, labels, col = NULL, nrow = nrow,scales = "free") 
+function (xy, slide, labels, col = NULL, nrow = 1,scales = "free") 
 {
   if (is.null(col)) {
     labels = as.factor(labels)
