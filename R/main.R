@@ -59,7 +59,7 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
  
 
   spat_coord <- as.matrix(SpatialExperiment::spatialCoords(object))
-  samples <- colData(spe)$sample_id
+  samples <- colData(object)$sample_id
       
   kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, samples = samples, ...)
 
@@ -210,7 +210,7 @@ RunKODAMAvisualization.SingleCellExperiment <- function(object, ...) {
 }
 
 RunKODAMAvisualization.SpatialExperiment = function(object, ...) {
-  if (!is(spe, "SpatialExperiment")) {
+  if (!is(object, "SpatialExperiment")) {
     stop("object is not a SpatialExperiment object")
   }
   reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
