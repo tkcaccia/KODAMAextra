@@ -34,7 +34,8 @@ RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=5
     data= data[ , 1:dims]
   }
   kk <- KODAMA.matrix.parallel(data = data, ...)
-  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
+#  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
+ mcols(object@int_colData@listData$reducedDims)$info = list(KODAMA=kk)
   return(object)
 }
 
@@ -66,7 +67,9 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
    
   
   #So I assigned KODAMA object manually
-  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
+#  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
+  mcols(object@int_colData@listData$reducedDims)$info = list(KODAMA=kk)
+
   return(object)
 }
 
@@ -203,9 +206,12 @@ RunKODAMAvisualization.SingleCellExperiment <- function(object, ...) {
   if (!is(object, "SingleCellExperiment")) {
     stop("object is not a SingleCellExperiment object")
   }
-  reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
+ # reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
+reducedDims_KODAMA = mcols(object@int_colData@listData$reducedDims)$info[["KODAMA"]]
+    
   vis <- KODAMA.visualization(reducedDims_KODAMA, ...)
-  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- vis
+ # object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- vis
+    SingleCellExperiment::reducedDim(object, "KODAMA") <- vis
   return(object)
 }
 
@@ -213,7 +219,8 @@ RunKODAMAvisualization.SpatialExperiment = function(object, ...) {
   if (!is(object, "SpatialExperiment")) {
     stop("object is not a SpatialExperiment object")
   }
-  reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
+  #reducedDims_KODAMA <- object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]]
+  reducedDims_KODAMA = mcols(object@int_colData@listData$reducedDims)$info[["KODAMA"]]  
   vis <- KODAMA.visualization(reducedDims_KODAMA, ...)
   SingleCellExperiment::reducedDim(object, "KODAMA") <- vis
   return(object)
