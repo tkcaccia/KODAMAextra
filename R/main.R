@@ -1228,7 +1228,20 @@ Lscore = function(data,l,knn=10){
 
 
 
-
+read_annotations = function(address){
+  rr <- read.csv(address)
+ss=strsplit(rr[,2],":")
+ss=unlist(lapply(ss, function(x) x[2]))
+ss=strsplit(ss,",")
+ss=unlist(lapply(ss, function(x) x[1]))
+ss=gsub("\"","",ss)
+names(ss)=rr[,1]
+n=ave(1:length(rr[,1]), rr[,1], FUN = seq_along)
+ss=ss[n==1]
+# Remove the first character
+ss <- substr(ss, 2, nchar(ss))
+ss
+}
 
 
 
