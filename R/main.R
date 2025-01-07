@@ -1101,7 +1101,7 @@ passing.message =
     data=t(data.2)
     spatial=as.matrix(spatialCoords(object))
     samples=as.factor(colData(object)$sample_id)
-    top=multi_SPARKX(data,spatial,samples)
+    top=multi_SPARKX(data,spatial,samples, ...)
     return(top)
   }
   
