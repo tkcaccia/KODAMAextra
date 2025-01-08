@@ -1024,7 +1024,7 @@ passing.message =
 
     # Initialize result matrix
     data.2 <- matrix(0, nrow = nspots, ncol = nvariables)
-    knn=knn_Rnanoflann(spatial,spatial,number_knn)
+    knn=Rnanoflann::nn(spatial,spatial,number_knn)
     for(h in 1:nspots){       
       # Find nearest neighbors using spatial information
       
