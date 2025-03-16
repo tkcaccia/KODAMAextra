@@ -1014,7 +1014,7 @@ volume_rendering <- function(xyz,  tissue_segments,selection=NULL, alpha=NULL, c
 
 
 passing.message = 
-  function (data, spatial, number_knn = 15, quantile = 0.5, n.cores = 1) 
+  function (data, spatial, number_knn = 15, n.cores = 1) 
   {
     data=as.matrix(data)
     spatial=as.matrix(spatial)
@@ -1032,7 +1032,6 @@ passing.message =
       # Initialize a temporary vector for computations
       temp = rep(0, nvariables)
       RNA.temp = data[knn$indices[h,], ]
-      knn_gene = Rnanoflann::nn(RNA.temp, RNA.temp[1, , drop = FALSE], round(number_knn * quantile))$indices
 
       knn$distances=knn$distances/max(knn$distances)
       # Compute weighted sum for each variable
@@ -1047,8 +1046,6 @@ passing.message =
     colnames(data.2) = colnames(data)
     data.2
   }
-
-
 
 
 
