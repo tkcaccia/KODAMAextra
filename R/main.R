@@ -1014,7 +1014,7 @@ volume_rendering <- function(xyz,  tissue_segments,selection=NULL, alpha=NULL, c
 
 
 passing.message = 
-  function (data, spatial, number_knn = 15, n.cores = 1) 
+  function (data, spatial, number_knn = 15) 
   {
     data=as.matrix(data)
     spatial=as.matrix(spatial)
@@ -1026,13 +1026,9 @@ passing.message =
     data.2 <- matrix(0, nrow = nspots, ncol = nvariables)
     knn=Rnanoflann::nn(spatial,spatial,number_knn)
     for(h in 1:nspots){       
-      # Find nearest neighbors using spatial information
-      
-      
       # Initialize a temporary vector for computations
       temp = rep(0, nvariables)
       RNA.temp = data[knn$indices[h,], ]
-
       knn$distances=knn$distances/max(knn$distances)
       # Compute weighted sum for each variable
       for (i in 1:number_knn) {
