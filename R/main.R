@@ -1235,6 +1235,66 @@ ss
 
 
 
+leiden = function(g,ncluster,init=0,delta=0.2){
+  ##### Leiden algorithm
+  res=init
+  t=0
+  res=init-delta
+  while(ncluster>t){
+    res=res+delta
+    clu=cluster_leiden(g,resolution_parameter=res)
+    t=clu$nb_clusters
+    print(c(res,t))
+  }
+
+  if(t!=ncluster){
+    res=res-delta
+    t=0
+  }
+  while(ncluster!=t){
+    delta=delta/2
+    if(t>ncluster){
+      res=res-delta
+    }else{
+      res=res+delta
+    }
+    clu=cluster_leiden(g,resolution_parameter=res)
+    t=clu$nb_clusters
+    print(c(res,t))
+  }
+  clu
+}
+
+louvain = function(g,ncluster,init=0,delta=0.2){
+  ##### Louvain algorithm
+  res=init
+  t=0
+  res=init-delta
+  while(ncluster>t){
+    res=res+delta
+    clu=cluster_louvain(g,resolution=res)
+    t=length(unique(clu$membership))
+    print(c(res,t))
+  }
+
+  if(t!=ncluster){
+    res=res-delta
+    t=0
+  }
+  while(ncluster!=t){
+    delta=delta/2
+    if(t>ncluster){
+      res=res-delta
+    }else{
+      res=res+delta
+    }
+    clu=cluster_louvain(g,resolution=res)
+    t=length(unique(clu$membership))
+    print(c(res,t))
+  }
+  clu
+}
+
 
 
 
