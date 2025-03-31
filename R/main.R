@@ -603,8 +603,9 @@ KODAMA.matrix.parallel =
             FUN = c("fastpls","simpls"), 
             ncomp = 50,
             W = NULL, metrics="euclidean",
-            constrain = NULL, fix = NULL, epsilon = 0.05, landmarks = 10000,  
-            splitting = 50, spatial.resolution = 0.3, n.cores = 1, seed=1234) 
+            constrain = NULL, fix = NULL, landmarks = 10000,  
+            splitting = ifelse(nrow(data) < 40000, 100, 300),
+            spatial.resolution = 0.3, n.cores = 1, seed=1234) 
   {
     set.seed(seed)
     f.par.pls = ncomp
