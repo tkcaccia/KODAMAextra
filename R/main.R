@@ -1299,5 +1299,27 @@ louvain = function(g,ncluster,init=0,delta=0.2){
 
 
 
+
+
+
+
+
+
+
+# Script to visualize the HE image and spots together
+#image=as.raster(object@images$slice1.008um@image)
+#save(image,file="output/CRC-image.RData")
+#object@images$slice1.008um@scale.factors$hires
+
+# plot(image,xlim=c(320,530),ylim=c(200,410))
+# points(xy[,2]*0.007973422,nrow(image)-xy[,1]*0.007973422,pch=20)
+
+#xy=as.matrix(GetTissueCoordinates(sp_obj)[,1:2])
+
+#image=as.raster(imgData(object)$data[[1]])
+
+#xy_sel=spatialCoords(spe_sub)
+#xy_sel=xy_sel*scaleFactors(spe_sub)
+#xy_sel[,2]=nrow(image)-xy_sel[,2]
                    
 
