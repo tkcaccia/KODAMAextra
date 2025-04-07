@@ -112,7 +112,7 @@ dimObject=createDimObj(
   misc = kk,
   my_rownames = NULL)
 
-  object = set_dimReduction(gobject = object, dimObject = dimObject)
+  object = setDimReduction(gobject = object, dimObject = dimObject)
 
   return(object)
 }
@@ -282,7 +282,7 @@ dimObject=createDimObj(
   misc = object@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc,
   my_rownames = NULL)
 
-  object = set_dimReduction(gobject = object, dimObject = dimObject,verbose = FALSE)
+  object = setDimReduction(gobject = object, dimObject = dimObject,verbose = FALSE)
 
 
 
