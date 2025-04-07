@@ -92,9 +92,9 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
   spat_coord = NULL
 
    # Giotto pipeline deals only with spatial omics data
-   spat_coord=getSpatialLocations(object,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
-   xy_names=spat_coord$cell_ID 
-   spat_coord=as.matrix(spat_coord[,-ncol(as.matrix(spat_coord))])
+   spat_coord_original=getSpatialLocations(object,spat_unit = NULL,name = NULL,output = "data.table",copy_obj = TRUE,verbose = TRUE,set_defaults = TRUE)
+   xy_names=spat_coord_original$cell_ID 
+   spat_coord=as.matrix(spat_coord_original[,1:2])
     
    rownames(spat_coord)=xy_names
    
@@ -112,7 +112,7 @@ dimObject=createDimObj(
   misc = kk,
   my_rownames = NULL)
 
-  object = setDimReduction(gobject = object, dimObject = dimObject)
+  object = setDimReduction(gobject = object, x = dimObject)
 
   return(object)
 }
@@ -281,8 +281,8 @@ dimObject=createDimObj(
   provenance = NULL,
   misc = object@dimension_reduction$cells$cell$rna$KODAMA$KODAMA@misc,
   my_rownames = NULL)
-
-  object = setDimReduction(gobject = object, dimObject = dimObject,verbose = FALSE)
+    
+  object = setDimReduction(gobject = object, x = dimObject,verbose = FALSE)
 
 
 
