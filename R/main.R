@@ -1095,11 +1095,9 @@ passing.message =
   
 
 
-
-
-
-plot_slide = 
-function (xy, slide, labels, col = NULL, nrow = 1,scales = "free") 
+                   
+plot_slide =  function (xy, slide, labels, col = NULL, nrow = 1, scales = "free",size.dot = 3,
+                        size.legend.text=50,size.legend.title=50,size.legend.dot=20,size.strip.text=50)
 {
   if (is.null(col)) {
     labels = as.factor(labels)
@@ -1110,14 +1108,16 @@ function (xy, slide, labels, col = NULL, nrow = 1,scales = "free")
   colnames(df) = c("x", "y", "slide", "labels")
   df$slide = as.factor(df$slide)
   df$labels = as.factor(df$labels)
-  ggplot(df, aes(x, y, color = labels)) + geom_point(size = 1) + 
-    facet_wrap(~slide, nrow = nrow,scales = scales) + theme_bw() + theme(legend.position = "bottom", 
-                                                         axis.title = element_blank(), axis.text = element_blank(), 
-                                                         axis.ticks = element_blank(), panel.grid = element_blank()) + 
-    scale_color_manual("Domain", values = col) + guides(color = guide_legend(nrow = 1, 
-                                                                             override.aes = list(size = 2)))
+  ggplot(df, aes(x, y, color = labels)) + geom_point(size = size.dot) +
+    facet_wrap(~slide, nrow = nrow, scales = scales) + theme_bw() +
+    theme(legend.position = "bottom", axis.title = element_blank(),
+          legend.text = element_text(size = size.legend.text),  
+          legend.title = element_text(size = size.legend.title), 
+          strip.text = element_text(size = size.strip.text, face = "bold"), 
+          axis.text = element_blank(), axis.ticks = element_blank(),
+          panel.grid = element_blank()) +
+    scale_color_manual("Domain",  values = col) + guides(color = guide_legend(nrow = 1,  override.aes = list(size = size.legend.dot)))  # Legend
 }
-
 
 
 
