@@ -1097,7 +1097,7 @@ passing.message =
 
                    
 plot_slide =  function (xy, slide, labels, col = NULL, nrow = 1, scales = "free",size.dot = 3,
-                        size.legend.text=50,size.legend.title=50,size.legend.dot=20,size.strip.text=50)
+                        size.legend.text=10,size.legend.title=10,size.legend.dot=5,size.strip.text=10)
 {
   if (is.null(col)) {
     labels = as.factor(labels)
