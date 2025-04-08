@@ -1116,7 +1116,7 @@ plot_slide =  function (xy, slide, labels, col = NULL, nrow = 1, scales = "free"
           strip.text = element_text(size = size.strip.text, face = "bold"), 
           axis.text = element_blank(), axis.ticks = element_blank(),
           panel.grid = element_blank()) +
-    scale_color_manual("Domain",  values = col) + guides(color = guide_legend(nrow = 1,  override.aes = list(size = size.legend.dot)))  # Legend
+    scale_color_manual("Domain",  values = col, drop = FALSE) + guides(color = guide_legend(nrow = 1,  override.aes = list(size = size.legend.dot)))  # Legend
 }
 
 
