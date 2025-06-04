@@ -630,7 +630,8 @@ KODAMA.matrix.parallel =
   {
     set.seed(seed)
     f.par.pls = ncomp
-    neighbors = min(c(landmarks, nrow(data)-1),500) 
+   # neighbors = min(c(landmarks, nrow(data)-1),500) 
+    neighbors = floor(min(c(landmarks, nrow(data)*0.75-1),500) )
     if (sum(is.na(data)) > 0) {
       stop("Missing values are present")
     } 
