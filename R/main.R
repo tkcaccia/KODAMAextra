@@ -35,7 +35,10 @@ quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.pa
     f.par.pls = data_col
   }
 
-  
+  if (f.par.pls > data_row) {
+    message("The number of components selected for PLS-DA is too high and it will be automatically reduced to ", data_row)
+    f.par.pls = data_row
+  }
   return(list(matchFUN=matchFUN,f.par.pls=f.par.pls))
 }
 
