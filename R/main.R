@@ -20,6 +20,27 @@ RunKODAMAmatrix.default = function(data, ...) {
   return(kk)
 }
 
+quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.par.pls){
+  matchFUN = pmatch(FUN[1], c("fastpls","simpls"))
+  if (is.na(matchFUN)) 
+    stop("The method to be considered must be  \"fastpls\", \"simpls\".")
+  if (!is.null(spatial_row)){
+    if (spatial_row!=data_row) 
+      stop("The number of spatial coordinates and number of entries do not match.")    
+
+  } 
+
+  if (f.par.pls > data_col) {
+    message("The number of components selected for PLS-DA is too high and it will be automatically reduced to ", data_col)
+    f.par.pls = data_col
+  }
+
+  
+  return(list(matchFUN=matchFUN,f.par.pls=f.par.pls))
+}
+
+
+
 RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=50, ...) {
   if (!is(object, "SingleCellExperiment")) {
     stop("object is not a SingleCellExperiment object")
