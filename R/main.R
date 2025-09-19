@@ -785,7 +785,7 @@ KODAMA.matrix.parallel =
                                                         ethnicity, k = 3, weight = "inv_dist2", lambda = 2, 
                                                         p_repulse = 1, r0 = 10, repel_set = "all", 
                                                         eta = 0.01, tol = 1e-04, verbose = FALSE)
-            eq <- equalize_within_between(res_move$xy, ethnicity, within_target = "median", between_target_ratio = 3)
+            eq <- equalize_within_between(res_move$xy, ethnicity, within_target = "median", between_target_ratio = 2)
             delta = 0 #as.numeric(unlist(tapply(aa, 1:length(aa),  function(x) runif(nsample, -x, x))))
             spatialclusters = as.numeric(kmeans(eq$xy + delta,   nspatialclusters)$cluster)
           } else {
