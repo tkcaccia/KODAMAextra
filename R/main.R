@@ -629,7 +629,7 @@ KODAMA.matrix.parallel =
             W = NULL, metrics="euclidean",
             constrain = NULL, fix = NULL, landmarks = 10000,  
             splitting = ifelse(nrow(data) < 40000, 100, 300),
-            spatial.resolution = 0.3, n.cores = 1, seed=1234) 
+            spatial.resolution = 0.3, n.cores = 1, ancestry=TRUE, seed=1234) 
   {
     set.seed(seed)
     f.par.pls = ncomp
@@ -776,8 +776,23 @@ KODAMA.matrix.parallel =
         
         
         if (spatial_flag) {
-          delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
-          spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+         # delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
+         # spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+
+          if (ancestry) {
+            ethnicity = as.integer(factor(apply(spatial, 1, function(x) paste(x, collapse = "@"))))
+            res_move <- move_clusters_harmonic_repulsive(spatial, 
+                                                        label, k = 3, weight = "inv_dist2", lambda = 2, 
+                                                        p_repulse = 1, r0 = 10, repel_set = "all", 
+                                                        eta = 0.01, tol = 1e-04, verbose = FALSE)
+            eq <- equalize_within_between(res_move$xy, cluster, within_target = "median", between_target_ratio = 3)
+            delta = as.numeric(unlist(tapply(aa, 1:length(aa),  function(x) runif(nsample, -x, x))))
+            spatialclusters = as.numeric(kmeans(eq$xy + delta,   nspatialclusters)$cluster)
+          } else {
+            delta = as.numeric(unlist(tapply(aa, 1:length(aa), function(x) runif(nsample, -x, x))))
+            spatialclusters = as.numeric(kmeans(spatial + delta, nspatialclusters)$cluster)
+          }
+            
           ta_const=table(spatialclusters)
           ta_const=ta_const[ta_const>1]
           sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
