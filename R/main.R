@@ -659,9 +659,9 @@ KODAMA.matrix.parallel =
       spatial_flag = TRUE
       
         
-      writeLines("\nCalculating Network spatial")
+     # writeLines("\nCalculating Network spatial")
       knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean" )
-      
+
       aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
       
       # A horizontalization of the spatial information is done
