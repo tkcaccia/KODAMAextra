@@ -1,5 +1,5 @@
 Package: KODAMAextra
-Version: 1.2
+Version: 1.2.1
 Date: 2023-10-19
 Authors@R: c(person("Stefano", "Cacciatore", role = c("aut", "trl", "cre"),email = "tkcaccia@gmail.com", comment = c(ORCID = "0000-0001-7052-7156")))
 Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
@@ -17,4 +17,5 @@ NeedsCompilation: yes
 Repository: CRAN
 Author: Stefano Cacciatore [aut, trl, cre]
     (<https://orcid.org/0000-0001-7052-7156>)
+
 
