@@ -629,7 +629,7 @@ KODAMA.matrix.parallel =
             W = NULL, metrics="euclidean",
             constrain = NULL, fix = NULL, landmarks = 10000,  
             splitting = ifelse(nrow(data) < 40000, 100, 300),
-            spatial.resolution = 0.3, n.cores = 1, ancestry=TRUE, seed=1234) 
+            spatial.resolution = 0.3, n.cores = 1, ancestry=FALSE, seed=1234) 
   {
     set.seed(seed)
     f.par.pls = ncomp
