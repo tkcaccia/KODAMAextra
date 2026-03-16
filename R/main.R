@@ -621,11 +621,11 @@ add_branch = function(dd){
 
 KODAMA.matrix.parallel =
   function (data,                       # Dataset
-            spatial = NULL,             # In spatial are conteined the spatial coordinates of each entries
+            spatial = NULL,             # In spatial are contained the spatial coordinates of each entry
             samples = NULL, 
             M = 100, Tcycle = 20, 
             FUN = c("fastpls","simpls"), 
-            ncomp = 50,
+            ncomp = min(c(50,ncol(data)),
             W = NULL, metrics="euclidean",
             constrain = NULL, fix = NULL, landmarks = 10000,  
             splitting = ifelse(nrow(data) < 40000, 100, 300),
@@ -633,7 +633,6 @@ KODAMA.matrix.parallel =
   {
     set.seed(seed)
     f.par.pls = ncomp
-   # neighbors = min(c(landmarks, nrow(data)-1),500) 
     neighbors = floor(min(c(landmarks, nrow(data)*0.75-1),500) )
     if (sum(is.na(data)) > 0) {
       stop("Missing values are present")
@@ -644,9 +643,9 @@ KODAMA.matrix.parallel =
     nsample_spatial= nrow(spatial)
 
 
-    writeLines("Calculating Network")
+    writeLines("Calculating Feature Network...")
     
-    knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1,method=metrics)
+    knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1,method=metrics,parallel=TRUE,cores=n.cores)
     knn_Rnanoflann$distances = knn_Rnanoflann$distances[, -1]
     knn_Rnanoflann$indices = knn_Rnanoflann$indices[, -1]  
 
@@ -657,10 +656,9 @@ KODAMA.matrix.parallel =
       spatial_flag = FALSE
     }  else {
       spatial_flag = TRUE
-      
-        
-     # writeLines("\nCalculating Network spatial")
-      knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean" )
+          
+      writeLines("\nCalculating Spatial Network..")
+      knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean",parallel=TRUE,cores=n.cores)
 
       aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
       
@@ -678,9 +676,7 @@ KODAMA.matrix.parallel =
             ma=ran[2]+ dist(ran)[1]*0.5
           }
         }
-      }
-      ##  aa=sqrt(apply(spatial,2,function(x) dist(range(x))))
-      
+      }      
     }
     if (is.null(fix)) 
       fix = rep(FALSE, nsample)
@@ -693,13 +689,10 @@ KODAMA.matrix.parallel =
     }
  
     
-    if(nsample<=landmarks){
+    if(nsample<landmarks){
       landmarks=ceiling(nsample*0.75)
-      simm_dissimilarity_matrix=TRUE
-    } else{
-      simm_dissimilarity_matrix=FALSE
-    }
-    
+    } 
+      
     nspatialclusters=round(landmarks*spatial.resolution)
     
     QC=quality_control(data_row = nsample,
@@ -776,8 +769,7 @@ KODAMA.matrix.parallel =
         
         
         if (spatial_flag) {
-         # delta=as.numeric(unlist(tapply(aa,1:length(aa),function(x) runif(nsample,-x,x))))
-         # spatialclusters=as.numeric(kmeans(spatial+delta, nspatialclusters)$cluster)
+
 
           if (ancestry) {
             ethnicity = as.integer(factor(apply(spatial, 1, function(x) paste(x, collapse = "@"))))
@@ -785,7 +777,9 @@ KODAMA.matrix.parallel =
                                                         ethnicity, k = 3, weight = "inv_dist2", lambda = 2, 
                                                         p_repulse = 1, r0 = 10, repel_set = "all", 
                                                         eta = 0.01, tol = 1e-04, verbose = FALSE)
-            eq <- equalize_within_between(res_move$xy, ethnicity, within_target = "median", between_target_ratio = 2)
+            eq <- equalize_within_between(res_move$xy, 
+                                          ethnicity, 
+                                          within_target = "median", between_target_ratio = 2)
             delta = 0 #as.numeric(unlist(tapply(aa, 1:length(aa),  function(x) runif(nsample, -x, x))))
             spatialclusters = as.numeric(kmeans(eq$xy + delta,   nspatialclusters)$cluster)
           } else {
@@ -801,10 +795,6 @@ KODAMA.matrix.parallel =
           }        
           
           
-          #######      tab = apply(table(spatialclusters, constrain), 2,which.max)
-          #######      constrain_clean = tab[as.character(constrain)]
-          #######     Does not work for big number
-          
           constrain_clean=NULL
           for(ic in 1:max(constrain)){
             sel_ic=ic==constrain
@@ -813,7 +803,6 @@ KODAMA.matrix.parallel =
               
         }else{
           constrain_clean=constrain
-          
         }
         Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
         if(!is.null(W)){
@@ -823,8 +812,6 @@ KODAMA.matrix.parallel =
           ghg = is.na(SV_startingvector)
           SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
           
-          #################  tab = apply(table(SV_startingvector,Xconstrain), 2,  which.max)
-          ################   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
           XW=NULL
           for(ic in 1:max(Xconstrain)){
             XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
@@ -836,8 +823,6 @@ KODAMA.matrix.parallel =
             XW = Xconstrain
           } else {
             clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-            #############   tab = apply(table(clust, Xconstrain), 2, which.max)
-            #############   XW = as.numeric(as.factor(tab[as.character(Xconstrain)]))
             
             XW=NULL
             for(ic in 1:max(Xconstrain)){
@@ -877,10 +862,7 @@ KODAMA.matrix.parallel =
           res_k[landpoints] = clbest
           res_k[-landpoints] = yatta$vect_proj
           
-          
-          ###########        tab = apply(table(res_k, constrain_clean), 2, which.max)
-          ###########        res_k = as.numeric(as.factor(tab[as.character(constrain_clean)]))
-          
+
           res_k_temp=NULL
           for(ic in 1:max(constrain_clean)){
             res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
