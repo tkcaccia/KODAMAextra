@@ -27,7 +27,7 @@
   Stefano Cacciatore
 }
 \seealso{
-  \code{\link{KODAMA.matrix.parallel}}, \code{\link{RunKODAMAmatrix}}
+  \code{\link[KODAMA:KODAMA.matrix]{KODAMA::KODAMA.matrix}}, \code{\link{RunKODAMAmatrix}}
 }
 \examples{
   sce <- RunKODAMAvisualization(sce, dims = 2)

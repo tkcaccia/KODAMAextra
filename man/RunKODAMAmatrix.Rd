@@ -26,7 +26,7 @@
     Character. Assay to extract if no reduction is specified.
   }
   \item{...}{
-    Additional arguments passed to KODAMA.matrix.parallel or class-specific methods.
+    Additional arguments passed to \code{KODAMA::KODAMA.matrix} or class-specific methods.
   }
 }
 \value{
@@ -36,7 +36,7 @@
   Stefano Cacciatore
 }
 \seealso{
-  \code{\link{KODAMA.matrix.parallel}}
+  \code{\link[KODAMA:KODAMA.matrix]{KODAMA::KODAMA.matrix}}
 }
 \examples{
   sce <- RunKODAMAmatrix(sce, reduction = 'PCA', dims = 1:30)

@@ -43,7 +43,6 @@ S3method(multi_SPARKX,SpatialExperiment)
 
 
 
-export(KODAMA.matrix.parallel)
 export(RunKODAMAmatrix)
 export(RunKODAMAvisualization)
 export(refinecluster)

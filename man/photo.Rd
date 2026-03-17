@@ -28,7 +28,7 @@
   Stefano Cacciatore
 }
 \seealso{
-  \code{\link{KODAMA.matrix.parallel}}
+  \code{\link[KODAMA:KODAMA.matrix]{KODAMA::KODAMA.matrix}}
 }
 \examples{
   imgs <- photo(vis, xy, range = 0.1, n_pixels = 10)

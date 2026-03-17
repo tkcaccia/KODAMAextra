@@ -16,30 +16,8 @@ multi_SPARKX <- function(...) {
 }
 
 RunKODAMAmatrix.default = function(data, ...) {
-  kk=KODAMA.matrix.parallel(data = data, ...)
+  kk = KODAMA::KODAMA.matrix(data = data, ...)
   return(kk)
-}
-
-quality_control = function(data_row,data_col,spatial_row=NULL,FUN,data=NULL,f.par.pls){
-  matchFUN = pmatch(FUN[1], c("fastpls","simpls"))
-  if (is.na(matchFUN)) 
-    stop("The method to be considered must be  \"fastpls\", \"simpls\".")
-  if (!is.null(spatial_row)){
-    if (spatial_row!=data_row) 
-      stop("The number of spatial coordinates and number of entries do not match.")    
-
-  } 
-
-  if (f.par.pls > data_col) {
-    message("The number of components selected for PLS-DA is too high and it will be automatically reduced to ", data_col)
-    f.par.pls = data_col
-  }
-
-  if (f.par.pls > data_row) {
-    message("The number of components selected for PLS-DA is too high and it will be automatically reduced to ", data_row)
-    f.par.pls = data_row
-  }
-  return(list(matchFUN=matchFUN,f.par.pls=f.par.pls))
 }
 
 
@@ -57,7 +35,7 @@ RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=5
     }
     data= data[ , 1:dims]
   }
-  kk <- KODAMA.matrix.parallel(data = data, ...)
+  kk <- KODAMA::KODAMA.matrix(data = data, ...)
 #  object@int_colData@listData[["reducedDims"]]@listData[["KODAMA"]] <- kk
  mcols(object@int_colData@listData$reducedDims)$info = list(KODAMA=kk)
   return(object)
@@ -86,7 +64,7 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
   spat_coord <- as.matrix(SpatialExperiment::spatialCoords(object))
   samples <- colData(object)$sample_id
       
-  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, samples = samples, ...)
+  kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, samples = samples, ...)
 
    
   
@@ -123,7 +101,7 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
    rownames(spat_coord)=xy_names
    
       
-  kk=KODAMA.matrix.parallel(data = data, spatial = spat_coord, ...)
+  kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, ...)
 
 dimObject=createDimObj(
   coordinates=matrix(0),
@@ -170,8 +148,8 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
       spat_coord <- GetTissueCoordinates(object[[i]])
       samples <- object[[i]]@meta.data$orig.ident
     
-      kk <- KODAMAextra::KODAMA.matrix.parallel(data = data, 
-                                                spatial = spat_coord, samples = samples, ...)
+      kk <- KODAMA::KODAMA.matrix(data = data,
+                                  spatial = spat_coord, samples = samples, ...)
       KODAMA = CreateDimReducObject(embeddings = data[ , 1:2], 
                                     key = "Dimensions_", assay = "RNA", misc = kk)
       object[[i]]@reductions[["KODAMA"]] <- KODAMA
@@ -210,7 +188,7 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
 
       
       
-    kk = KODAMAextra::KODAMA.matrix.parallel(data = data, spatial = spat_coord, samples = samples, ...)
+    kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, samples = samples, ...)
     KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
                                   key = "Dimensions_", assay = "RNA", misc = kk)
     object@reductions$KODAMA = KODAMA
@@ -619,341 +597,6 @@ add_branch = function(dd){
 
 
 
-KODAMA.matrix.parallel =
-  function (data,                       # Dataset
-            spatial = NULL,             # In spatial are contained the spatial coordinates of each entry
-            samples = NULL, 
-            M = 100, Tcycle = 20, 
-            FUN = c("fastpls","simpls"), 
-            ncomp = min(c(50,ncol(data)),
-            W = NULL, metrics="euclidean",
-            constrain = NULL, fix = NULL, landmarks = 10000,  
-            splitting = ifelse(nrow(data) < 40000, 100, 300),
-            spatial.resolution = 0.3, n.cores = 1, ancestry=FALSE, seed=1234) 
-  {
-    set.seed(seed)
-    f.par.pls = ncomp
-    neighbors = floor(min(c(landmarks, nrow(data)*0.75-1),500) )
-    if (sum(is.na(data)) > 0) {
-      stop("Missing values are present")
-    } 
-    data = as.matrix(data)
-    nsample = nrow(data)
-    nvariable = ncol(data)
-    nsample_spatial= nrow(spatial)
-
-
-    writeLines("Calculating Feature Network...")
-    
-    knn_Rnanoflann = Rnanoflann::nn(data, data, neighbors + 1,method=metrics,parallel=TRUE,cores=n.cores)
-    knn_Rnanoflann$distances = knn_Rnanoflann$distances[, -1]
-    knn_Rnanoflann$indices = knn_Rnanoflann$indices[, -1]  
-
-
-      
-        
-    if (is.null(spatial)) {
-      spatial_flag = FALSE
-    }  else {
-      spatial_flag = TRUE
-          
-      writeLines("\nCalculating Spatial Network..")
-      knn_Rnanoflann_spatial = Rnanoflann::nn(spatial, spatial, neighbors,method="euclidean",parallel=TRUE,cores=n.cores)
-
-      aa=colMeans(abs(spatial[knn_Rnanoflann_spatial$indices[,1],]-spatial[knn_Rnanoflann_spatial$indices[,20],]))*3
-      
-      # A horizontalization of the spatial information is done
-      # Each different sample will be placed side by side
-      
-      if(!is.null(samples)){
-        samples_names=names(table(samples))          
-        if(length(samples_names)>1){
-          ma=0
-          for (j in 1:length(samples_names)) {
-            sel <- samples_names[j] == samples
-            spatial[sel, 1]=spatial[sel, 1]+ma
-            ran=range(spatial[sel, 1])
-            ma=ran[2]+ dist(ran)[1]*0.5
-          }
-        }
-      }      
-    }
-    if (is.null(fix)) 
-      fix = rep(FALSE, nsample)
-    if (is.null(constrain)) 
-      constrain = 1:nsample
-    is.na.constrain=is.na(constrain)
-    if(any(is.na.constrain)){
-      constrain=as.numeric(as.factor(constrain))
-      constrain[is.na.constrain]=max(constrain,na.rm = TRUE)+(1:length(constrain[is.na.constrain]))
-    }
- 
-    
-    if(nsample<landmarks){
-      landmarks=ceiling(nsample*0.75)
-    } 
-      
-    nspatialclusters=round(landmarks*spatial.resolution)
-    
-    QC=quality_control(data_row = nsample,
-                       data_col = nvariable,
-                       spatial_row = nsample_spatial,
-                       FUN = FUN,
-                       data = data,
-                       f.par.pls = f.par.pls)
-    matchFUN=QC$matchFUN
-    
-    f.par.pls=QC$f.par.pls
-    
-    
-    
-    res = matrix(nrow = M, ncol = nsample)
-    res_constrain = matrix(nrow = M, ncol = nsample)
-    
-    vect_acc = matrix(NA, nrow = M, ncol = Tcycle)
-    accu = NULL
-    
-    
-    
-    my.cluster <- parallel::makeCluster(
-      n.cores, 
-      type = "PSOCK"
-    )
-    print(my.cluster)
-    doParallel::registerDoParallel(cl = my.cluster)
-    foreach::getDoParRegistered()
-    foreach::getDoParWorkers()
-    
-    
-    
-    doSNOW::registerDoSNOW(my.cluster)
-    pb <- txtProgressBar(min = 1, max = M, style = 1)
-    
-    
-    
-    
-    
-    
-    res_parallel <- foreach(k = 1:M, 
-                            .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
-                            .packages = c('KODAMA','Rnanoflann')) %dopar%
-      {
-        
-        set.seed(seed+k)
-        
-        
-        
-        # The landmarks samples are chosen in a way to cover all different profile
-        # The data are divided in a number of clusters equal to the number of landmarks
-        # A landpoint is chosen randomly from each cluster
-        
-        landpoints=NULL
-        clust = as.numeric(kmeans(data, landmarks)$cluster)
-        for (ii in 1:landmarks) {
-          www = which(clust == ii)
-          lwww=length(www)
-          landpoints = c(landpoints,www[sample.int(lwww, 1, FALSE, NULL)])
-        }
-        
-        # Variables are splitted in two where 
-        # X variables are the variables for cross-validation accuracy maximizzation
-        # T variables are the variable for the projections
-        
-        Tdata = data[-landpoints, , drop = FALSE]
-        Xdata = data[landpoints, , drop = FALSE]
-        Tfix = fix[-landpoints]
-        Xfix = fix[landpoints]
-        whF = which(!Xfix)
-        whT = which(Xfix)
-        Xspatial = spatial[landpoints, , drop = FALSE]
-        
-        
-        if (spatial_flag) {
-
-
-          if (ancestry) {
-            ethnicity = as.integer(factor(apply(spatial, 1, function(x) paste(x, collapse = "@"))))
-            res_move <- move_clusters_harmonic_repulsive(spatial, 
-                                                        ethnicity, k = 3, weight = "inv_dist2", lambda = 2, 
-                                                        p_repulse = 1, r0 = 10, repel_set = "all", 
-                                                        eta = 0.01, tol = 1e-04, verbose = FALSE)
-            eq <- equalize_within_between(res_move$xy, 
-                                          ethnicity, 
-                                          within_target = "median", between_target_ratio = 2)
-            delta = 0 #as.numeric(unlist(tapply(aa, 1:length(aa),  function(x) runif(nsample, -x, x))))
-            spatialclusters = as.numeric(kmeans(eq$xy + delta,   nspatialclusters)$cluster)
-          } else {
-            delta = as.numeric(unlist(tapply(aa, 1:length(aa), function(x) runif(nsample, -x, x))))
-            spatialclusters = as.numeric(kmeans(spatial + delta, nspatialclusters)$cluster)
-          }
-            
-          ta_const=table(spatialclusters)
-          ta_const=ta_const[ta_const>1]
-          sel_cluster_1=spatialclusters %in% as.numeric(names(ta_const))
-          if(sum(!sel_cluster_1)>0){
-            spatialclusters[!sel_cluster_1]=spatialclusters[sel_cluster_1][Rnanoflann::nn(spatial[sel_cluster_1,],spatial[!sel_cluster_1,,drop=FALSE],1)$indices]
-          }        
-          
-          
-          constrain_clean=NULL
-          for(ic in 1:max(constrain)){
-            sel_ic=ic==constrain
-            constrain_clean[sel_ic]=as.numeric(names(which.max(table(spatialclusters[sel_ic]))))
-          }
-              
-        }else{
-          constrain_clean=constrain
-        }
-        Xconstrain = as.numeric(as.factor(constrain_clean[landpoints]))
-        if(!is.null(W)){
-          SV_startingvector = W[landpoints]
-          unw = unique(SV_startingvector)
-          unw = unw[-which(is.na(unw))]
-          ghg = is.na(SV_startingvector)
-          SV_startingvector[ghg] = as.numeric(as.factor(SV_startingvector[ghg])) + length(unw)
-          
-          XW=NULL
-          for(ic in 1:max(Xconstrain)){
-            XW[ic==Xconstrain]=as.numeric(names(which.max(table(SV_startingvector[ic==Xconstrain]))))
-          }
-          
-          
-        }else{
-          if (landmarks<200) {
-            XW = Xconstrain
-          } else {
-            clust = as.numeric(kmeans(Xdata, splitting)$cluster)
-            
-            XW=NULL
-            for(ic in 1:max(Xconstrain)){
-              XW[ic==Xconstrain]=as.numeric(names(which.max(table(clust[ic==Xconstrain]))))
-            }
-            
-            
-          }
-        }
-        
-        
-        clbest = XW
-        options(warn = -1)
-        yatta = 0
-        attr(yatta, "class") = "try-error"
-        while (!is.null(attr(yatta, "class"))) {
-          yatta = try(core_cpp(Xdata, Tdata, clbest, Tcycle, FUN, 
-                               f.par.pls,
-                               Xconstrain, Xfix), silent = FALSE)
-          
-        }
-        options(warn = 0)
-        res_k=rep(NA,nsample)
-        if (is.list(yatta)) {
-          clbest = as.vector(yatta$clbest)
-          accu = yatta$accbest
-          yatta$vect_acc = as.vector(yatta$vect_acc)
-          yatta$vect_acc[yatta$vect_acc == -1] = NA
-          vect_acc[k, ] = yatta$vect_acc
-          
-          yatta$vect_proj = as.vector(yatta$vect_proj)
-          
-          if(!is.null(W))
-            yatta$vect_proj[Tfix] = W[-landpoints][Tfix]
-          
-          temp=rep(NA,nsample)
-          res_k[landpoints] = clbest
-          res_k[-landpoints] = yatta$vect_proj
-          
-
-          res_k_temp=NULL
-          for(ic in 1:max(constrain_clean)){
-            res_k_temp[ic==constrain_clean]=as.numeric(names(which.max(table(res_k[ic==constrain_clean]))))
-          }
-          res_k=res_k_temp 
-          
-          
-        }
-        
-        
-        
-        list(res_k=res_k,constrain_k=constrain_clean)
-      }
-    
-    writeLines("\nFinished parallel computation")
-    
-    close(pb)
-    for(k in 1:M){
-      res[k,] = res_parallel[[k]]$res_k
-      res_constrain[k,]=res_parallel[[k]]$constrain_k
-    }
-    
-    
-    
-    
-    
-    
-    print("Calculation of dissimilarity matrix...")
-    
-    pb <- txtProgressBar(min = 1, max = nrow(data), style = 1)
-    
-    
-    res_parallel <- foreach(k = 1:nrow(data), 
-                            .options.snow = list(progress = function(n) setTxtProgressBar(pb, n)),
-                            .packages = c('KODAMA')) %dopar%
-      {
-        
-        
-        
-        
-        knn_indices=knn_Rnanoflann$indices[k,]
-        knn_distances=knn_Rnanoflann$distances[k,]
-        
-        
-        
-        mean_knn_distances=mean(knn_distances)                             
-        for (j_tsne in 1:neighbors) {
-          
-          kod_tsne = mean(res[, k] == res[, knn_indices[j_tsne]], na.rm = TRUE)
-          knn_distances[j_tsne] = (1+knn_distances[j_tsne])/(kod_tsne^2)
-          
-        }
-        
-        
-        oo_tsne = order(knn_distances)
-        knn_distances = knn_distances[oo_tsne]
-        knn_indices = knn_indices[oo_tsne]
-        
-        list(knn_distances=knn_distances,knn_indices=knn_indices)
-      }
-    
-    parallel::stopCluster(cl = my.cluster)
-    
-    
-    for(k in 1:nrow(data)){
-      
-      knn_Rnanoflann$indices[k,]=res_parallel[[k]]$knn_indices
-      knn_Rnanoflann$distances[k,] =res_parallel[[k]]$knn_distances
-      
-    }
-    
-    close(pb)
-    
-    
-    knn_Rnanoflann$neighbors = neighbors
-    return(list(acc = accu, 
-                v = vect_acc, res = res, 
-                knn_Rnanoflann = knn_Rnanoflann, 
-                data = data,
-                res_constrain=res_constrain))
-    
-  }
-
-
-
-
-
-                     
-
-
-                                                 
 photo=function(vis,xy,range=0.05,n_pixels=25){
   
   image=matrix(0,nrow(xy),ncol=2*n_pixels^2)
@@ -1344,4 +987,3 @@ louvain = function(g,ncluster,init=0,delta=0.2){
 #xy_sel=xy_sel*scaleFactors(spe_sub)
 #xy_sel[,2]=nrow(image)-xy_sel[,2]
                    
-
