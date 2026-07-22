@@ -41,7 +41,7 @@ RunKODAMAmatrix.SingleCellExperiment = function(object, reduction= "PCA", dims=5
   return(object)
 }
 
-RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, ...) {
+RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, spatial=TRUE, ...) {
   if (!is(object, "SpatialExperiment")) {
     stop("object is not a spatialExperiment object")
   }
@@ -63,8 +63,11 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
 
   spat_coord <- as.matrix(SpatialExperiment::spatialCoords(object))
   samples <- colData(object)$sample_id
-      
-  kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, samples = samples, ...)
+  if(spatial){
+    kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, samples = samples, ...)
+  }else{
+    kk = KODAMA::KODAMA.matrix(data = data,  ...)
+  }
 
    
   
@@ -77,7 +80,7 @@ RunKODAMAmatrix.SpatialExperiment = function(object, reduction= "PCA", dims=50, 
 
 
 
-RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
+RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, spatial=TRUE, ...) {
   if (!is(object, "giotto")) {
     stop("object is not a giotto object")
   }
@@ -100,9 +103,13 @@ RunKODAMAmatrix.giotto = function(object,reduction="pca",dims=50, ...) {
     
    rownames(spat_coord)=xy_names
    
-      
-  kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, ...)
-
+   if(spatial){   
+     kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, ...)
+   }else{
+     
+     kk = KODAMA::KODAMA.matrix(data = data, ...)
+   }
+    
 dimObject=createDimObj(
   coordinates=matrix(0),
   name = "KODAMA",
@@ -125,7 +132,7 @@ dimObject=createDimObj(
 #' @export
 #' @param assay Name of assay to retrieve the data if dimension = null.
 #' @rdname RunKODAMAmatrix 
-RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...) 
+RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, spatial = TRUE,...) 
 {
 
   if (is.list(object)){ 
@@ -147,9 +154,12 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
       data = data[, 1:dims]
       spat_coord <- GetTissueCoordinates(object[[i]])
       samples <- object[[i]]@meta.data$orig.ident
-    
-      kk <- KODAMA::KODAMA.matrix(data = data,
-                                  spatial = spat_coord, samples = samples, ...)
+      if(spatial){
+        kk <- KODAMA::KODAMA.matrix(data = data,
+                                    spatial = spat_coord, samples = samples, ...)
+      }else{
+        kk <- KODAMA::KODAMA.matrix(data = data, ...)
+      }
       KODAMA = CreateDimReducObject(embeddings = data[ , 1:2], 
                                     key = "Dimensions_", assay = "RNA", misc = kk)
       object[[i]]@reductions[["KODAMA"]] <- KODAMA
@@ -187,8 +197,11 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, ...)
 #######################################################################################
 
       
-      
-    kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, samples = samples, ...)
+    if(spatial){  
+      kk = KODAMA::KODAMA.matrix(data = data, spatial = spat_coord, samples = samples, ...)
+    }else{
+      kk = KODAMA::KODAMA.matrix(data = data, ...)
+    }
     KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
                                   key = "Dimensions_", assay = "RNA", misc = kk)
     object@reductions$KODAMA = KODAMA
