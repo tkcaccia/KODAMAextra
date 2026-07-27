@@ -161,7 +161,7 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, use.sp
         kk <- KODAMA::KODAMA.matrix(data = data, ...)
       }
       KODAMA = CreateDimReducObject(embeddings = data[ , 1:2], 
-                                    key = "Dimensions_", assay = "RNA", misc = kk)
+                                    key = paste(reduction.save,"_",sep=""), assay = "RNA", misc = kk)
       object[[i]]@reductions[[reduction.save]] <- KODAMA
       
     }
@@ -203,7 +203,7 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, use.sp
       kk = KODAMA::KODAMA.matrix(data = data, ...)
     }
     KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
-                                  key = "Dimensions_", assay = "RNA", misc = kk)
+                                  key = paste(reduction.save,"_",sep=""), assay = "RNA", misc = kk)
     object@reductions[[reduction.save]] = KODAMA
   }
   return(object)
@@ -253,7 +253,7 @@ RunKODAMAvisualization.Seurat = function(object, reduction.save = "KODAMA", ...)
       vis=KODAMA.visualization(object[[i]]@reductions$KODAMA@misc, ...)
       KODAMA=CreateDimReducObject(
         embeddings = vis,
-        key = "Dimensions_",
+        key = paste(reduction.save,"_",sep=""),
         assay = "RNA",
         misc=object[[i]]@reductions[[reduction.save]]@misc
       )
@@ -268,7 +268,7 @@ RunKODAMAvisualization.Seurat = function(object, reduction.save = "KODAMA", ...)
     vis=KODAMA.visualization(object@reductions[[reduction.save]]@misc, ...)
     KODAMA=CreateDimReducObject(
       embeddings = vis,
-      key = "Dimensions_",
+      key = paste(reduction.save,"_",sep=""),
       assay = "RNA",
       misc=object@reductions[[reduction.save]]@misc
     )
