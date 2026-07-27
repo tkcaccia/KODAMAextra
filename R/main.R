@@ -132,7 +132,7 @@ dimObject=createDimObj(
 #' @export
 #' @param assay Name of assay to retrieve the data if dimension = null.
 #' @rdname RunKODAMAmatrix 
-RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, use.spatial = TRUE,...) 
+RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, use.spatial = TRUE, reduction.save = "KODAMA", ...) 
 {
 
   if (is.list(object)){ 
@@ -162,7 +162,7 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, use.sp
       }
       KODAMA = CreateDimReducObject(embeddings = data[ , 1:2], 
                                     key = "Dimensions_", assay = "RNA", misc = kk)
-      object[[i]]@reductions[["KODAMA"]] <- KODAMA
+      object[[i]]@reductions[[reduction.save]] <- KODAMA
       
     }
   }else{
@@ -204,7 +204,7 @@ RunKODAMAmatrix.Seurat <- function (object, reduction = "pca", dims = 50, use.sp
     }
     KODAMA = CreateDimReducObject(embeddings = data[ , 1:2],  # should we choose larger number of dims
                                   key = "Dimensions_", assay = "RNA", misc = kk)
-    object@reductions$KODAMA = KODAMA
+    object@reductions[[reduction.save]] = KODAMA
   }
   return(object)
 }
@@ -241,7 +241,7 @@ RunKODAMAvisualization.SpatialExperiment = function(object, ...) {
   return(object)
 }
 
-RunKODAMAvisualization.Seurat = function(object, ...) {
+RunKODAMAvisualization.Seurat = function(object, reduction.save = "KODAMA", ...) {
 
   if (is.list(object)){ 
     for(i in seq_along(object)){
@@ -255,9 +255,9 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
         embeddings = vis,
         key = "Dimensions_",
         assay = "RNA",
-        misc=object[[i]]@reductions$KODAMA@misc
+        misc=object[[i]]@reductions[[reduction.save]]@misc
       )
-      object[[i]]@reductions$KODAMA=KODAMA
+      object[[i]]@reductions[[reduction.save]]=KODAMA
       
     }
   }else{
@@ -265,14 +265,14 @@ RunKODAMAvisualization.Seurat = function(object, ...) {
     if (!is(object, "Seurat")) { # 1- extract data
       stop("object is not a Seurat object")
     }
-    vis=KODAMA.visualization(object@reductions$KODAMA@misc, ...)
+    vis=KODAMA.visualization(object@reductions[[reduction.save]]@misc, ...)
     KODAMA=CreateDimReducObject(
       embeddings = vis,
       key = "Dimensions_",
       assay = "RNA",
-      misc=object@reductions$KODAMA@misc
+      misc=object@reductions[[reduction.save]]@misc
     )
-    object@reductions$KODAMA=KODAMA
+    object@reductions[[reduction.save]]=KODAMA
 
   }
   return(object)
