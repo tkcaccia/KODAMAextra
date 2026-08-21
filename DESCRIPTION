@@ -1,22 +1,28 @@
 Package: KODAMAextra
-Version: 1.2.2
-Date: 2026-03-17
+Version: 1.2.3
+Date: 2026-08-21
 Authors@R: c(person("Stefano", "Cacciatore", role = c("aut", "trl", "cre"),email = "tkcaccia@gmail.com", comment = c(ORCID = "0000-0001-7052-7156")))
 Maintainer: Stefano Cacciatore <tkcaccia@gmail.com>
 Title: Knowledge Discovery by Accuracy Maximization
-Description: Additional function for the KODAMA package.
-Depends: R (>= 2.10.0), parallel, doParallel, foreach, doSNOW, misc3d, ggplot2
-Imports: Rcpp (>= 0.12.4)
-LinkingTo: Rcpp, RcppArmadillo
-Suggests: knitr, rmarkdown
-VignetteBuilder: knitr
-SuggestsNote: No suggestions
+Description: Focused visualization and trajectory utilities that complement
+    the KODAMA package. Core preprocessing, PCA, nearest-neighbor graph, and
+    graph-clustering functions are maintained by KODAMA or fastEmbedR.
+Depends: R (>= 4.1.0)
+Imports:
+    ggplot2,
+    graphics,
+    grDevices,
+    misc3d,
+    Rnanoflann,
+    rlang,
+    rgl,
+    stats,
+    utils
+Suggests:
+    testthat (>= 3.0.0)
 License: GPL (>= 2)
-Packaged: 2023-05-29 01:32:47 UTC; User
-NeedsCompilation: yes
-Repository: CRAN
-Author: Stefano Cacciatore [aut, trl, cre]
-    (<https://orcid.org/0000-0001-7052-7156>)
+NeedsCompilation: no
+Config/testthat/edition: 3
 
 
 

@@ -1,27 +1,5 @@
-# Default NAMESPACE created by R
-# Remove the previous line if you edit this file
-
-
-# Import all packages listed as Imports or Depends
-#exportPattern("^[[:alpha:]]+")
-
-
-importFrom(Rcpp, evalCpp)
-importFrom("graphics", "plot", "points")
-importFrom("utils", "setTxtProgressBar", "txtProgressBar")
-importFrom("stats", "aov", "summary.aov", "t.test", "p.adjust", "fisher.test", "prcomp","aggregate","quantile", "wilcox.test","cmdscale", "as.dist", "dist", "kmeans", "kruskal.test","median", "pnorm", "rnorm", "runif", "sd", "var","cor.test")
-importFrom("parallel", "makeCluster", "stopCluster")
-importFrom("doParallel", "registerDoParallel")
-importFrom("foreach", "getDoParRegistered", "getDoParWorkers")
-importFrom("misc3d", "kde3d","contour3d")
-
-  
 export(new_trajectory)
+export(plot_slide)
 export(read_annotations)
 export(volume_rendering)
-export(passing.message)
-
-export(plot_slide)
-export(louvain)
-export(leiden)
-
+importFrom(rlang,.data)

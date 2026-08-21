@@ -5,7 +5,10 @@
   Generates isosurface contours for tissue segments using kernel density estimation and renders them with rgl.
 }
 \usage{
-  volume_rendering(xyz, tissue_segments, selection = NULL, alpha = NULL, colors = NULL, cells = c(20,20,20), level = exp(-3))
+volume_rendering(
+  xyz, tissue_segments, selection = NULL, alpha = NULL, colors = NULL,
+  cells = c(20, 20, 20), level = exp(-3)
+)
 }
 \arguments{
   \item{xyz}{
@@ -37,9 +40,13 @@
   Stefano Cacciatore
 }
 \seealso{
-  \code{\link[MASS]{kde3d}}, \code{\link[misc3d]{contour3d}}, \code{\link[rgl]{rglwidget}}
+  \code{\link[misc3d]{kde3d}}, \code{\link[misc3d]{contour3d}}, \code{\link[rgl]{rglwidget}}
 }
 \examples{
-  volume_rendering(xyz, seg, colors = c('red','blue'), alpha = c(0.5, 0.3))
+\dontrun{
+xyz <- matrix(stats::runif(300), ncol = 3)
+segments <- factor(rep(c("one", "two"), each = 50))
+volume_rendering(xyz, segments, colors = c("red", "blue"))
+}
 }
 \keyword{methods}

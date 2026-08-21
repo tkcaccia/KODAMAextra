@@ -5,7 +5,11 @@
   Generates faceted scatter plots of spatial coordinates labeled by domains per slide/sample.
 }
 \usage{
-  plot_slide(xy, slide, labels, col = NULL, nrow = 1, scales = 'free', size.dot = 3, size.legend.text = 10, size.legend.title = 10, size.legend.dot = 5, size.strip.text = 10)
+plot_slide(
+  xy, slide, labels, col = NULL, nrow = 1, scales = "free",
+  size.dot = 3, size.legend.text = 10, size.legend.title = 10,
+  size.legend.dot = 5, size.strip.text = 10
+)
 }
 \arguments{
   \item{xy}{
@@ -52,6 +56,9 @@
   \code{\link[ggplot2]{facet_wrap}}
 }
 \examples{
-  p <- plot_slide(coords, slides, domains); print(p)
+xy <- cbind(x = rep(1:4, 2), y = rep(1:2, each = 4))
+slides <- rep(c("A", "B"), each = 4)
+domains <- factor(rep(c("one", "two"), 4))
+plot_slide(xy, slides, domains)
 }
 \keyword{methods}

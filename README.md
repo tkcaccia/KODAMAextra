@@ -1,21 +1,22 @@
-# KODAMA
-An unsupervised and semi-supervised learning algorithm to performs feature extraction from noisy and high-dimensional data
+# KODAMAextra
 
-## News 
+`KODAMAextra` contains focused visualization and trajectory helpers that
+complement KODAMA:
 
-KODAMA facilitates identification of patterns representing underlying groups on all samples in a data set. 
-This is an improved version of KODAMA algorithm for spatially-aware dimensionality reduction. A landmarks procudere has been implemented to adapt the algorithm to the analysis of data set with more than 10,000 entries. 
+- `plot_slide()` draws labels across one or more tissue sections.
+- `volume_rendering()` renders labelled three-dimensional regions.
+- `new_trajectory()` interactively defines and summarizes a trajectory.
+- `read_annotations()` reads the package's supported annotation CSV format.
 
-The KODAMA package has been integrated with t-SNE and UMAP to convert the KODAMA's dissimilarity matrix in a low dimensional space. 
+Numerical functionality now lives in the package that owns it:
 
+- use `KODAMA::passing.message()` for spatial message passing;
+- use `fastEmbedR::graph_cluster(method = "louvain")` for Louvain;
+- use `fastEmbedR::graph_cluster(method = "leiden")` for Leiden;
+- use `fastEmbedR::graph_cluster(method = "walktrap")` for Walktrap.
 
+Install the current development version with:
 
-## Installation
-
-The KODAMA is avialable on https://CRAN.R-project.org/package=KODAMA.
-
-```
-library(devtools)
-install_github("tkcaccia/KODAMAextra")
-
+```r
+remotes::install_github("tkcaccia/KODAMAextra")
 ```
